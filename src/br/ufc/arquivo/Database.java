@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 // TODO: pesquisar sobre JDBC - arquitetura de statements, resultset, connection - visão geral
+// -- http://www.cs.huji.ac.il/~dbi/recitations/jdbc/JDBC-PSQL.pdf
+// TODO: refatorar o uso de connection com try with resources
+// TODO: estudar como funciona try with resources(como implementar um closeable?)
 public class Database {
 
 	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?);";
@@ -17,13 +20,8 @@ public class Database {
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
 
 	private static final String QUERY_DELETE_ALL = "delete from pessoa";
-
-	// TODO: seria melhor usar string template, no lugar de concatenar strings
-	private static final String MSG_ERRO_EXECUCAO_SQL = "Erro na execução do SQL - ";
 	
-	private static final String MSG_ERRO_CLOSE_STATEMENT = "Erro ao tentar fechar o statement";
-	
-	private static final String MSG_ERRO_CLOSE_RESULT_SET = "Erro ao tentar fechar o resultset";
+	private static final String QUERY_COUNT = "select count(*) from pessoa";
 
 	private static final String PATH_DB = "jdbc:sqlite:/home/abevieiramota/Documents/recursoshumanos.db";
 
@@ -33,33 +31,14 @@ public class Database {
 
 		openConnection();
 
-		PreparedStatement stmt = null;
-
-		try {
-
-			stmt = this.conn.prepareStatement(QUERY_DELETE_ALL);
+		try (PreparedStatement stmt = 
+				this.conn.prepareStatement(QUERY_DELETE_ALL)) {
+			
 			stmt.execute();
 		} catch (SQLException e) {
+		} 
 
-			System.out.println(MSG_ERRO_EXECUCAO_SQL + QUERY_DELETE_ALL);
-			e.printStackTrace();
-		} finally {
-
-			if (stmt != null) {
-
-				try {
-
-					stmt.close();
-				} catch (SQLException e) {
-
-					System.out.println(MSG_ERRO_CLOSE_STATEMENT);
-					e.printStackTrace();
-				}
-			}
-
-			closeConnection();
-		}
-
+		closeConnection();
 	}
 
 	public List<String[]> all() {
@@ -67,13 +46,9 @@ public class Database {
 		openConnection();
 
 		List<String[]> pessoas = null;
-		ResultSet rs = null;
-		Statement stmt = null;
 
-		try {
-
-			stmt = this.conn.createStatement();
-			rs = stmt.executeQuery(QUERY_SELECT_ALL);
+		try (Statement stmt = this.conn.createStatement();
+				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
 
 			pessoas = new ArrayList<String[]>();
 
@@ -88,50 +63,22 @@ public class Database {
 			}
 
 		} catch (SQLException e) {
-
-			System.out.println(MSG_ERRO_EXECUCAO_SQL + QUERY_SELECT_ALL);
-			e.printStackTrace();
-		} finally {
-
-			if (rs != null) {
-
-				try {
-
-					rs.close();
-				} catch (SQLException e) {
-
-					System.out.println(MSG_ERRO_CLOSE_RESULT_SET);
-					e.printStackTrace();
-				}
-			}
-
-			if (stmt != null) {
-
-				try {
-
-					stmt.close();
-				} catch (SQLException e) {
-
-					System.out.println(MSG_ERRO_CLOSE_STATEMENT);
-					e.printStackTrace();
-				}
-			}
-
-			closeConnection();
 		}
+		
+		closeConnection();
 
 		return pessoas;
+		
 	}
 
+	// TODO: usar batch
 	public void salvar(List<String[]> data) {
 
 		openConnection();
 
-		PreparedStatement stmt = null;
-
-		try {
-			stmt = this.conn.prepareStatement(QUERY_INSERT);
-
+		try (PreparedStatement stmt = 
+				this.conn.prepareStatement(QUERY_INSERT)) {
+			
 			for (String[] dataRow : data) {
 
 				stmt.setString(1, dataRow[0]);
@@ -140,50 +87,31 @@ public class Database {
 
 				stmt.execute();
 			}
+			
 		} catch (SQLException e) {
-
-			System.out.println(MSG_ERRO_EXECUCAO_SQL + QUERY_INSERT);
-			e.printStackTrace();
-		} finally {
-
-			if (stmt != null) {
-
-				try {
-
-					stmt.close();
-				} catch (SQLException e) {
-
-					System.out.println(MSG_ERRO_CLOSE_STATEMENT);
-					e.printStackTrace();
-				}
-			}
-
-			closeConnection();
-		}
-
+		} 
+		
+		closeConnection();
+		
 	}
 
-	// TODO: sério? select count(*) from pessoa né!!!!!!
-	// refatorar seguindo o padrão dos outros métodos e mudando a consulta para
-	// usar o count
-	public int quantidadeDeRegistros() throws SQLException {
+	public int quantidadeDeRegistros() {
 
 		openConnection();
-
-		Statement statement = this.conn.createStatement();
-
-		ResultSet rs = statement.executeQuery("select * from pessoa;");
-
-		int count = 0;
-
-		while (rs.next()) {
-			++count;
+		
+		int counter = 0;
+		
+		try (Statement stmt = this.conn.createStatement();
+				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
+			
+			counter = rs.getInt(1);
+			
+		} catch (SQLException e) {
 		}
+		
+		closeConnection();
 
-		rs.close();
-		this.conn.close();
-
-		return count;
+		return counter;
 
 	} // end quantidadeDeRegistros method
 
@@ -197,9 +125,6 @@ public class Database {
 
 			this.conn = DriverManager.getConnection(PATH_DB);
 		} catch (SQLException e) {
-
-			System.out.println("Não foi possível abrir conexão");
-			e.printStackTrace();
 		}
 	} // end openConnection method
 
@@ -211,9 +136,6 @@ public class Database {
 
 				this.conn.close();
 			} catch (SQLException e) {
-
-				System.out.println("Não foi possível fechar a conexão");
-				e.printStackTrace();
 			}
 		}
 	}
