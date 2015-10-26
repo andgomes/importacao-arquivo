@@ -9,32 +9,45 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: estudar como funciona try with resources(como implementar um closeable?)
 public class Database {
+
+	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), idade varchar(50), profissão varchar(50))";
 
 	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?);";
 
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
 
 	private static final String QUERY_DELETE_ALL = "delete from pessoa";
-	
+
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
 
-	private static final String PATH_DB = 
-			"jdbc:sqlite:/home/abevieiramota/Documents/recursoshumanos.db";
+	// private static final String PATH_DB =
+	// "jdbc:sqlite:/home/abevieiramota/Documents/recursoshumanos.db";
+
+	private static final String PATH_DB = "jdbc:hsqldb:mem:/recursoshumanos";
 
 	public void reset() {
 
-
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-			 PreparedStatement stmt = 
-					 conn.prepareStatement(QUERY_DELETE_ALL)) {
-			
+				PreparedStatement stmt = conn
+						.prepareStatement(QUERY_DELETE_ALL)) {
+
 			stmt.execute();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} 
+		}
 
+	}
+
+	public void criarTabela() {
+
+		try (Connection conn = DriverManager.getConnection(PATH_DB);
+				Statement stmt = conn.createStatement()) {
+
+			stmt.execute(QUERY_CREATE_TABLE);
+
+		} catch (SQLException e) {
+		}
 	}
 
 	public List<String[]> all() {
@@ -42,8 +55,8 @@ public class Database {
 		List<String[]> pessoas = null;
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-			 Statement stmt = conn.createStatement();
-			 ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
 
 			pessoas = new ArrayList<String[]>();
 
@@ -62,49 +75,54 @@ public class Database {
 		}
 
 		return pessoas;
-		
+
 	}
 
-	// TODO: usar batch
 	public void salvar(List<String[]> data) {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-			 PreparedStatement stmt = 
-					 conn.prepareStatement(QUERY_INSERT)) {
+			 PreparedStatement stmt = conn.prepareStatement(QUERY_INSERT)) {
 
-			int i = 0;
+			try {
 			
-			for (String[] dataRow : data) {
-
-				System.out.println("Salvando registro: " + i);
+				int i = 0;
+	
+				for (String[] dataRow : data) {
+	
+					stmt.setString(1, dataRow[0]);
+					stmt.setString(2, dataRow[1]);
+					stmt.setString(3, dataRow[2]);
+	
+					stmt.addBatch();
+	
+					if (i++ % 1000 == 0) {
+	
+						stmt.executeBatch();
+					}
+				}
 				
-				stmt.setString(1, dataRow[0]);
-				stmt.setString(2, dataRow[1]);
-				stmt.setString(3, dataRow[2]);
+				stmt.executeBatch();
 
-				stmt.addBatch();
-				
-				++i;
+			} catch (SQLException e) {
+				conn.rollback();
 			}
 			
-			stmt.executeBatch();
-			
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} 
-		
+		}
+
 	}
 
 	public int quantidadeDeRegistros() {
 
 		int counter = 0;
-		
+
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-			 Statement stmt = conn.createStatement();
-			 ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
-			
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
+
+			rs.next();
 			counter = rs.getInt(1);
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
