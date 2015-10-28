@@ -1,5 +1,6 @@
 package br.ufc.arquivo;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -38,52 +39,21 @@ public class TestLeitorArquivo {
 
 	@Test
 	public void testLerRecordsQtdOk() throws IOException {
-
+		
 		assertEquals(FILE_SIZE_PESSOAS1, recordsDoArquivo1.size());
 		assertEquals(FILE_SIZE_PESSOAS2, recordsDoArquivo2.size());
 	}
 
 	@Test
-	public void testLerRecordsPrimeiroRecordOK() throws IOException {
+	public void seLerRecordsEntaoPrimeiroEUltimoRecordsOK() throws IOException {
 
-		String[] primeiroRecordPessoas1 = recordsDoArquivo1.get(0);
+		assertArrayEquals(FILE_PESSOAS1_PRIMEIRA_LINHA, recordsDoArquivo1.get(0));
+		assertArrayEquals(FILE_PESSOAS1_ULTIMA_LINHA, recordsDoArquivo1
+				.get(recordsDoArquivo1.size() - 1));
 
-		assertEquals(FILE_PESSOAS1_PRIMEIRA_LINHA[0],
-				primeiroRecordPessoas1[0]);
-		assertEquals(FILE_PESSOAS1_PRIMEIRA_LINHA[1],
-				primeiroRecordPessoas1[1]);
-		assertEquals(FILE_PESSOAS1_PRIMEIRA_LINHA[2],
-				primeiroRecordPessoas1[2]);
-
-		String[] primeiroRecordPessoas2 = recordsDoArquivo2.get(0);
-
-		assertEquals(FILE_PESSOAS2_PRIMEIRA_LINHA[0],
-				primeiroRecordPessoas2[0]);
-		assertEquals(FILE_PESSOAS2_PRIMEIRA_LINHA[1],
-				primeiroRecordPessoas2[1]);
-		assertEquals(FILE_PESSOAS2_PRIMEIRA_LINHA[2],
-				primeiroRecordPessoas2[2]);
-		assertEquals(FILE_PESSOAS2_PRIMEIRA_LINHA[3],
-				primeiroRecordPessoas2[3]);
+		assertArrayEquals(FILE_PESSOAS2_PRIMEIRA_LINHA, recordsDoArquivo2.get(0));
+		assertArrayEquals(FILE_PESSOAS2_ULTIMA_LINHA, recordsDoArquivo2
+				.get(recordsDoArquivo2.size() - 1));
 	}
 
-	@Test
-	public void testLerRecordsUltimoRecordOK() throws IOException {
-
-		String[] ultimoRecordPessoas1 = recordsDoArquivo1
-				.get(recordsDoArquivo1.size() - 1);
-
-		assertEquals(FILE_PESSOAS1_ULTIMA_LINHA[0], ultimoRecordPessoas1[0]);
-		assertEquals(FILE_PESSOAS1_ULTIMA_LINHA[1], ultimoRecordPessoas1[1]);
-		assertEquals(FILE_PESSOAS1_ULTIMA_LINHA[2], ultimoRecordPessoas1[2]);
-
-		String[] ultimoRecordPessoas2 = recordsDoArquivo2
-				.get(recordsDoArquivo2.size() - 1);
-
-		assertEquals(FILE_PESSOAS2_ULTIMA_LINHA[0], ultimoRecordPessoas2[0]);
-		assertEquals(FILE_PESSOAS2_ULTIMA_LINHA[1], ultimoRecordPessoas2[1]);
-		assertEquals(FILE_PESSOAS2_ULTIMA_LINHA[2], ultimoRecordPessoas2[2]);
-		assertEquals(FILE_PESSOAS2_ULTIMA_LINHA[3], ultimoRecordPessoas2[3]);
-	}
-	
 }

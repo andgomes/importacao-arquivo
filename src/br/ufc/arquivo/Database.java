@@ -6,14 +6,25 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
 
-	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), idade varchar(50), profissão varchar(50))";
+	private int chunkSize = 1000;
+	
+//	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), " + 
+//			"idade varchar(50), profissão varchar(50))";
+	
+	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), " + 
+			"idade varchar(50), profissão varchar(50), data_nascimento varchar(10))";
 
-	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?);";
+//	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?);";
+	
+	private static final int NUMBER_COLUMNS_DATABASE = 4;
+	
+	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?);";
 
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
 
@@ -21,36 +32,27 @@ public class Database {
 
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
 
-	// private static final String PATH_DB =
-	// "jdbc:sqlite:/home/abevieiramota/Documents/recursoshumanos.db";
-
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/recursoshumanos";
 
-	public void reset() {
+	public void reset() throws SQLException {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-				PreparedStatement stmt = conn
-						.prepareStatement(QUERY_DELETE_ALL)) {
+				Statement stmt = conn.createStatement()) {
 
-			stmt.execute();
-		} catch (SQLException e) {
-			e.printStackTrace();
+			stmt.execute(QUERY_DELETE_ALL);
 		}
-
 	}
 
-	public void criarTabela() {
+	public void criarTabela() throws SQLException {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
 				Statement stmt = conn.createStatement()) {
 
 			stmt.execute(QUERY_CREATE_TABLE);
-
-		} catch (SQLException e) {
 		}
 	}
 
-	public List<String[]> all() {
+	public List<String[]> all() throws SQLException {
 
 		List<String[]> pessoas = null;
 
@@ -62,59 +64,77 @@ public class Database {
 
 			while (rs.next()) {
 
-				String[] row = new String[3];
+				String[] row = new String[NUMBER_COLUMNS_DATABASE];
 				pessoas.add(row);
 
-				row[0] = rs.getString(1);
-				row[1] = rs.getString(2);
-				row[2] = rs.getString(3);
+				for (int i = 1; i <= row.length; i++) {
+					row[i - 1] = rs.getString(i);
+				}
+				
 			}
 
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 
 		return pessoas;
 
 	}
-
-	public void salvar(List<String[]> data) {
+	
+	public void salvar(List<String[]> data) throws SQLException {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-			 PreparedStatement stmt = conn.prepareStatement(QUERY_INSERT)) {
-
-			try {
+				PreparedStatement stmt = conn.prepareStatement(QUERY_INSERT)) {
 			
-				int i = 0;
-	
-				for (String[] dataRow : data) {
-	
-					stmt.setString(1, dataRow[0]);
-					stmt.setString(2, dataRow[1]);
-					stmt.setString(3, dataRow[2]);
-	
+			try {
+
+				conn.setAutoCommit(false);
+				
+				int batchSize = 0;
+				
+				for(String[] dataRow: data) {
+					
+					int colsPreenchidas = 0;
+					
+					for ( ; colsPreenchidas < dataRow.length; colsPreenchidas++) {
+						stmt.setString(colsPreenchidas + 1, dataRow[colsPreenchidas]);
+					}
+					
+					while (++colsPreenchidas <= NUMBER_COLUMNS_DATABASE) {
+						
+						stmt.setNull(colsPreenchidas, Types.VARCHAR);
+						++colsPreenchidas;
+						
+					}
+					
 					stmt.addBatch();
-	
-					if (i++ % 1000 == 0) {
-	
+					batchSize++;
+					
+					if(batchSize == this.chunkSize) {
+						
 						stmt.executeBatch();
+						batchSize = 0;
 					}
 				}
 				
-				stmt.executeBatch();
+				if(batchSize > 0) { // necessário, pois o driver do hsqldb lança exceção caso seja chamado
+					// executeBatch sem nenhum addBatch antes
+					
+					stmt.executeBatch();
+				}
+				
+				conn.commit();
 
 			} catch (SQLException e) {
+				
 				conn.rollback();
+				throw e;
 			}
-			
-		} catch (SQLException e) {
+
 		}
-
 	}
+	
+	public Integer quantidadeDeRegistros() throws SQLException {
 
-	public int quantidadeDeRegistros() {
-
-		int counter = 0;
+		Integer counter = null;
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
 				Statement stmt = conn.createStatement();
@@ -122,13 +142,14 @@ public class Database {
 
 			rs.next();
 			counter = rs.getInt(1);
-
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 
 		return counter;
-
 	} // end quantidadeDeRegistros method
+
+	public void setChunkSize(int size) {
+		
+		this.chunkSize = size;
+	} // end setChunckSize method
 
 } // end Database class

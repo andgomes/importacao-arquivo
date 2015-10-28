@@ -1,6 +1,7 @@
 package br.ufc.arquivo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.sql.Connection;
@@ -9,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +20,11 @@ import org.junit.Test;
 
 public class TestJDBC {
 
+	private static final String QUERY_SELECT_ALL = "select * from pessoa";
+	private static final String QUERY_SELECT_IDADE = "select idade from pessoa";
+	private static final String QUERY_INSERT = "insert into pessoa values (?, ?)";
+	private static final String QUERY_CLEAN = "delete from pessoa";
+	private static final String QUERY_CREATE = "create table pessoa (nome varchar(50), idade integer)";
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/teste";
 
 	@BeforeClass
@@ -27,8 +34,7 @@ public class TestJDBC {
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
 				Statement stmt = conn.createStatement()) {
 
-			stmt.execute("create table pessoa (nome varchar(50), idade integer)");
-
+			stmt.execute(QUERY_CREATE);
 		}
 	}
 
@@ -38,22 +44,21 @@ public class TestJDBC {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
 				Statement stmt = conn.createStatement()) {
-			
-			stmt.execute("delete from pessoa");
-		}
 
+			stmt.execute(QUERY_CLEAN);
+		}
 	}
 
 	// PreparedStatement mantém os parâmetros entre uma chamada e outra
 	// para limpar, chamar pstmt.clearParameters()
 	@Test
-	public void sePreparedStatementForReutilizadoEntaoParametrosSaoMantidos() throws SQLException {
+	public void sePreparedStatementForReutilizadoEntaoParametrosSaoMantidos()
+			throws SQLException {
 
 		int idade = 25;
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-				PreparedStatement pstmt = conn
-						.prepareStatement("insert into pessoa values (?, ?)");
+				PreparedStatement pstmt = conn.prepareStatement(QUERY_INSERT);
 				Statement stmt = conn.createStatement()) {
 
 			pstmt.setString(1, "Abelardo");
@@ -68,7 +73,7 @@ public class TestJDBC {
 			pstmt.execute();
 
 			// consultando idades
-			ResultSet rs = stmt.executeQuery("select idade from pessoa");
+			ResultSet rs = stmt.executeQuery(QUERY_SELECT_IDADE);
 
 			// verificando valores
 			Set<Integer> idadesNoDB = new HashSet<Integer>();
@@ -93,8 +98,7 @@ public class TestJDBC {
 		int idade = 25;
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
-				PreparedStatement pstmt = conn
-						.prepareStatement("insert into pessoa values (?, ?)");
+				PreparedStatement pstmt = conn.prepareStatement(QUERY_INSERT);
 				Statement stmt = conn.createStatement()) {
 
 			pstmt.setString(1, "Abelardo");
@@ -117,6 +121,35 @@ public class TestJDBC {
 			assertEquals("Parameter not set", e.getMessage());
 		}
 
+	}
+
+	@Test
+	public void seNoBancoColunaEhNullEntaoVemComValor0() throws SQLException {
+
+		ResultSet rs = null;
+
+		try (Connection conn = DriverManager.getConnection(PATH_DB);
+				PreparedStatement pstmt = conn.prepareStatement(QUERY_INSERT);
+				Statement stmt = conn.createStatement()) {
+
+			// adicionado registro (Abelardo, null)
+			pstmt.setString(1, "Abelardo");
+			pstmt.setNull(2, Types.INTEGER);
+			pstmt.execute();
+
+			// recuperando do banco
+			rs = stmt.executeQuery(QUERY_SELECT_ALL);
+
+			rs.next();
+
+			int idadeNull = rs.getInt(2);
+
+			assertEquals(0, idadeNull);
+
+			assertTrue(rs.wasNull());
+
+			rs.close();
+		}
 	}
 
 }

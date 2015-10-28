@@ -3,13 +3,12 @@ package br.ufc.arquivo;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
-import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 public class LeitorArquivo {
 
@@ -18,49 +17,29 @@ public class LeitorArquivo {
 	private static final CSVFormat FILE_FORMAT = CSVFormat
 			.newFormat(FILE_SEPARATOR).withHeader().withQuote(FILE_QUOTE_CHAR);
 
-	public static List<String[]> lerRecords(String filepath) {
+	// XXX: refatorei
+	public static List<String[]> lerRecords(String filepath)
+			throws FileNotFoundException, IOException {
 
-		List<CSVRecord> records = null;
+		List<String[]> recordsAsString = new LinkedList<String[]>();
 
 		try (FileReader reader = new FileReader(filepath);
 				CSVParser parser = new CSVParser(reader, FILE_FORMAT)) {
 
-			try {
-				
-				records = parser.getRecords();
-			} catch (IOException e) {
+			int nCols = parser.getHeaderMap().keySet().size();
+
+			for (CSVRecord record : parser) {
+
+				String[] recordAsStringArray = record.toMap().values()
+						.toArray(new String[nCols]);
+
+				recordsAsString.add(recordAsStringArray);
 			}
 
-		} catch (FileNotFoundException e) {
-		} catch (IOException e) {
 		}
-		
-		/* Transforma List<CSVRecord> em List<String[]> */
 
-		List<String[]> recordsAsString = 
-				new LinkedList<String[]>();
-				
-		for (CSVRecord record : records) {
-			
-			Iterator<String> iteratorCSV = record.iterator();
-			
-			String[] recordAsStringArray = new String[record.size()];
-			
-			int i = 0;
-			
-			while (iteratorCSV.hasNext()) {
-				
-				recordAsStringArray[i] = iteratorCSV.next();
-				++i;
-				
-			}
-			
-			recordsAsString.add(recordAsStringArray);
-			
-		}
-		
 		return recordsAsString;
-		
+
 	} // end lerRecords method
 
 } // end LeitorArquivo class
