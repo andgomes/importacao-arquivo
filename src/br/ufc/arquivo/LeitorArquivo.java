@@ -11,7 +11,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 public class LeitorArquivo {
-
+	
 	private static final char FILE_SEPARATOR = ';';
 	private static final char FILE_QUOTE_CHAR = '"';
 	private static final CSVFormat FILE_FORMAT = CSVFormat
@@ -19,12 +19,12 @@ public class LeitorArquivo {
 
 	public static List<String[]> lerRecords(String filepath)
 			throws FileNotFoundException, IOException {
-
+		
 		List<String[]> recordsAsString = new LinkedList<String[]>();
 
 		try (FileReader reader = new FileReader(filepath);
 				CSVParser parser = new CSVParser(reader, FILE_FORMAT)) {
-
+			
 			int nCols = parser.getHeaderMap().keySet().size();
 
 			for (CSVRecord record : parser) {
@@ -40,5 +40,5 @@ public class LeitorArquivo {
 		return recordsAsString;
 
 	} // end lerRecords method
-
+	
 } // end LeitorArquivo class

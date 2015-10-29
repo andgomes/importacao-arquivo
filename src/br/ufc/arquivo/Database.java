@@ -79,6 +79,9 @@ public class Database {
 
 	}
 	
+	// esperada list de String[] com length igual a x
+	// de forma que será criado registro na tabela preenchendo as x primeiras colunas
+	// ficando as demais com valor null
 	public void salvar(List<String[]> data) throws SQLException {
 
 		try (Connection conn = DriverManager.getConnection(PATH_DB);
@@ -98,11 +101,10 @@ public class Database {
 						stmt.setString(colsPreenchidas + 1, dataRow[colsPreenchidas]);
 					}
 					
-					while (++colsPreenchidas <= NUMBER_COLUMNS_DATABASE) {
+					while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
 						
-						stmt.setNull(colsPreenchidas, Types.VARCHAR);
-						++colsPreenchidas;
-						
+						stmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
+						colsPreenchidas++;
 					}
 					
 					stmt.addBatch();

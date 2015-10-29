@@ -29,12 +29,21 @@ public class TestLeitorArquivo {
 	private static final String[] FILE_PESSOAS2_ULTIMA_LINHA = {
 			"Abelardo 9979", "79", "Analista de Nada", "03/17/97" };
 	private static final String FILEPATH_PESSOAS2 = "./resources/pessoas2_10000registros.csv";
+	
+	private static List<String[]> recordsDoArquivo3;
+	private static final int FILE_SIZE_PESSOAS3 = 9980;
+	private static final String[] FILE_PESSOAS3_PRIMEIRA_LINHA = {
+			"Abelardo 3", "23", "Analista de Nada", "01/04/89" };
+	private static final String[] FILE_PESSOAS3_ULTIMA_LINHA = {
+			"Abelardo 9979", "79", "Analista de Nada", "03/17/97" };
+	private static final String FILEPATH_PESSOAS3 = "./resources/pessoas3_10000registros.csv";
 
 	@BeforeClass
 	public static void setUp() throws IOException {
 
 		recordsDoArquivo1 = LeitorArquivo.lerRecords(FILEPATH_PESSOAS1);
 		recordsDoArquivo2 = LeitorArquivo.lerRecords(FILEPATH_PESSOAS2);
+		recordsDoArquivo3 = LeitorArquivo.lerRecords(FILEPATH_PESSOAS3);
 	}
 
 	@Test
@@ -42,6 +51,7 @@ public class TestLeitorArquivo {
 
 		assertEquals(FILE_SIZE_PESSOAS1, recordsDoArquivo1.size());
 		assertEquals(FILE_SIZE_PESSOAS2, recordsDoArquivo2.size());
+		assertEquals(FILE_SIZE_PESSOAS3, recordsDoArquivo3.size());
 	}
 
 	@Test
@@ -56,6 +66,11 @@ public class TestLeitorArquivo {
 				recordsDoArquivo2.get(0));
 		assertArrayEquals(FILE_PESSOAS2_ULTIMA_LINHA,
 				recordsDoArquivo2.get(recordsDoArquivo2.size() - 1));
+		
+		assertArrayEquals(FILE_PESSOAS3_PRIMEIRA_LINHA,
+				recordsDoArquivo3.get(0));
+		assertArrayEquals(FILE_PESSOAS3_ULTIMA_LINHA,
+				recordsDoArquivo3.get(recordsDoArquivo3.size() - 1));
 	}
 
 }
