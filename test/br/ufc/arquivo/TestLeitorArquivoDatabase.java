@@ -28,6 +28,7 @@ public class TestLeitorArquivoDatabase {
 				Arrays.copyOfRange(firstRow, 0, firstRecord.length);
 		
 		assertArrayEquals(firstRecord, firstRowTruncated);
+		assertEquals(20, firstRow[1]);
 		
 	} // end lerArquivoESalvaNoBanco method
 	
