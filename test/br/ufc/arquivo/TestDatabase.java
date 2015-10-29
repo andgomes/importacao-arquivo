@@ -10,7 +10,6 @@ import java.sql.BatchUpdateException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.LinkedList;
 
 import org.junit.After;
 import org.junit.BeforeClass;

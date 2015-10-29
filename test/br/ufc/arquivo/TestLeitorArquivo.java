@@ -39,7 +39,7 @@ public class TestLeitorArquivo {
 
 	@Test
 	public void testLerRecordsQtdOk() throws IOException {
-		
+
 		assertEquals(FILE_SIZE_PESSOAS1, recordsDoArquivo1.size());
 		assertEquals(FILE_SIZE_PESSOAS2, recordsDoArquivo2.size());
 	}
@@ -47,13 +47,15 @@ public class TestLeitorArquivo {
 	@Test
 	public void seLerRecordsEntaoPrimeiroEUltimoRecordsOK() throws IOException {
 
-		assertArrayEquals(FILE_PESSOAS1_PRIMEIRA_LINHA, recordsDoArquivo1.get(0));
-		assertArrayEquals(FILE_PESSOAS1_ULTIMA_LINHA, recordsDoArquivo1
-				.get(recordsDoArquivo1.size() - 1));
+		assertArrayEquals(FILE_PESSOAS1_PRIMEIRA_LINHA,
+				recordsDoArquivo1.get(0));
+		assertArrayEquals(FILE_PESSOAS1_ULTIMA_LINHA,
+				recordsDoArquivo1.get(recordsDoArquivo1.size() - 1));
 
-		assertArrayEquals(FILE_PESSOAS2_PRIMEIRA_LINHA, recordsDoArquivo2.get(0));
-		assertArrayEquals(FILE_PESSOAS2_ULTIMA_LINHA, recordsDoArquivo2
-				.get(recordsDoArquivo2.size() - 1));
+		assertArrayEquals(FILE_PESSOAS2_PRIMEIRA_LINHA,
+				recordsDoArquivo2.get(0));
+		assertArrayEquals(FILE_PESSOAS2_ULTIMA_LINHA,
+				recordsDoArquivo2.get(recordsDoArquivo2.size() - 1));
 	}
 
 }

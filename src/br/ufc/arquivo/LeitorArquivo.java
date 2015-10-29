@@ -17,7 +17,6 @@ public class LeitorArquivo {
 	private static final CSVFormat FILE_FORMAT = CSVFormat
 			.newFormat(FILE_SEPARATOR).withHeader().withQuote(FILE_QUOTE_CHAR);
 
-	// XXX: refatorei
 	public static List<String[]> lerRecords(String filepath)
 			throws FileNotFoundException, IOException {
 
