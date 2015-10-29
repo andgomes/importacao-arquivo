@@ -13,17 +13,12 @@ import java.util.List;
 public class Database {
 
 	private int chunkSize = 1000;
-	
-//	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), " + 
-//			"idade varchar(50), profissão varchar(50))";
-	
-	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), " + 
-			"idade varchar(50), profissão varchar(50), data_nascimento varchar(10))";
 
-//	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?);";
-	
+	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), "
+			+ "idade integer, profissão varchar(50), data_nascimento varchar(10))";
+
 	private static final int NUMBER_COLUMNS_DATABASE = 4;
-	
+
 	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?);";
 
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
@@ -32,11 +27,16 @@ public class Database {
 
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
 
-	private static final String PATH_DB = "jdbc:hsqldb:mem:/recursoshumanos";
+	private String url;
+
+	public Database(String url) {
+
+		this.url = url;
+	}
 
 	public void reset() throws SQLException {
 
-		try (Connection conn = DriverManager.getConnection(PATH_DB);
+		try (Connection conn = DriverManager.getConnection(this.url);
 				Statement stmt = conn.createStatement()) {
 
 			stmt.execute(QUERY_DELETE_ALL);
@@ -45,32 +45,38 @@ public class Database {
 
 	public void criarTabela() throws SQLException {
 
-		try (Connection conn = DriverManager.getConnection(PATH_DB);
+		try (Connection conn = DriverManager.getConnection(this.url);
 				Statement stmt = conn.createStatement()) {
 
 			stmt.execute(QUERY_CREATE_TABLE);
 		}
 	}
 
-	public List<String[]> all() throws SQLException {
+	public List<Object[]> all() throws SQLException {
 
-		List<String[]> pessoas = null;
+		List<Object[]> pessoas = null;
 
-		try (Connection conn = DriverManager.getConnection(PATH_DB);
+		try (Connection conn = DriverManager.getConnection(this.url);
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
 
-			pessoas = new ArrayList<String[]>();
+			pessoas = new ArrayList<Object[]>();
 
 			while (rs.next()) {
 
-				String[] row = new String[NUMBER_COLUMNS_DATABASE];
+				Object[] row = new Object[NUMBER_COLUMNS_DATABASE];
 				pessoas.add(row);
 
 				for (int i = 1; i <= row.length; i++) {
-					row[i - 1] = rs.getString(i);
+
+					if (i == 2) {
+
+						row[i - 1] = rs.getInt(i);
+					} else {
+						row[i - 1] = rs.getString(i);
+					}
 				}
-				
+
 			}
 
 		}
@@ -78,67 +84,76 @@ public class Database {
 		return pessoas;
 
 	}
-	
+
 	// esperada list de String[] com length igual a x
-	// de forma que será criado registro na tabela preenchendo as x primeiras colunas
+	// de forma que será criado registro na tabela preenchendo as x primeiras
+	// colunas
 	// ficando as demais com valor null
 	public void salvar(List<String[]> data) throws SQLException {
 
-		try (Connection conn = DriverManager.getConnection(PATH_DB);
+		try (Connection conn = DriverManager.getConnection(this.url);
 				PreparedStatement stmt = conn.prepareStatement(QUERY_INSERT)) {
-			
+
 			try {
 
 				conn.setAutoCommit(false);
-				
+
 				int batchSize = 0;
-				
-				for(String[] dataRow: data) {
-					
+
+				for (String[] dataRow : data) {
+
 					int colsPreenchidas = 0;
-					
-					for ( ; colsPreenchidas < dataRow.length; colsPreenchidas++) {
-						stmt.setString(colsPreenchidas + 1, dataRow[colsPreenchidas]);
+
+					for (; colsPreenchidas < dataRow.length; colsPreenchidas++) {
+
+						if (colsPreenchidas == 1) {
+							stmt.setInt(colsPreenchidas + 1,
+									Integer.parseInt(dataRow[colsPreenchidas]));
+						} else {
+							stmt.setString(colsPreenchidas + 1,
+									dataRow[colsPreenchidas]);
+						}
 					}
-					
+
 					while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
-						
+
 						stmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
 						colsPreenchidas++;
 					}
-					
+
 					stmt.addBatch();
 					batchSize++;
-					
-					if(batchSize == this.chunkSize) {
-						
+
+					if (batchSize == this.chunkSize) {
+
 						stmt.executeBatch();
 						batchSize = 0;
 					}
 				}
-				
-				if(batchSize > 0) { // necessário, pois o driver do hsqldb lança exceção caso seja chamado
+
+				if (batchSize > 0) { // necessário, pois o driver do hsqldb
+										// lança exceção caso seja chamado
 					// executeBatch sem nenhum addBatch antes
-					
+
 					stmt.executeBatch();
 				}
-				
+
 				conn.commit();
 
 			} catch (SQLException e) {
-				
+
 				conn.rollback();
 				throw e;
 			}
 
 		}
 	}
-	
+
 	public Integer quantidadeDeRegistros() throws SQLException {
 
 		Integer counter = null;
 
-		try (Connection conn = DriverManager.getConnection(PATH_DB);
+		try (Connection conn = DriverManager.getConnection(this.url);
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
 
@@ -150,7 +165,7 @@ public class Database {
 	} // end quantidadeDeRegistros method
 
 	public void setChunkSize(int size) {
-		
+
 		this.chunkSize = size;
 	} // end setChunckSize method
 

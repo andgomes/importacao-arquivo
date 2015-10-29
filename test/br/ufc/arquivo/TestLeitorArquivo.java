@@ -9,9 +9,6 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-// TODO: novo requisito - ser capaz de ler pessoas3_10000registros.csv
-// TODO: novo requisito - ser capaz de salvar no banco os dados dos arquivos pessoas2_10000registros.csv e pessoas3_10000registros.csv
-// adicionar nova coluna para data(opcional, de forma a permitir que os dados de pessoas1_10000registros.csv também possam ser inseridos)
 public class TestLeitorArquivo {
 
 	private static List<String[]> recordsDoArquivo1;
