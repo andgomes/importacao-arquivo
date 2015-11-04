@@ -7,16 +7,19 @@ import static org.junit.Assert.assertNull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-// TODO: resolver o teste
-// TODO; refatorar
 public class TestDatabase {
 
 	private static final String FILE_PATH_ARQUIVO_100K_REGISTROS = "./resources/pessoas.csv";
@@ -24,18 +27,35 @@ public class TestDatabase {
 	private static final String FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA = "./resources/pessoas_linha_1_corrompida.csv";
 
 	private static final String STRING_SIZE_GT_50 = "AAAAAAAAAA_BBBBBBBBBB_CCCCCCCCCC_DDDDDDDDDD_EEEEEEEEEE";
+	
+	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/"
 			+ TestDatabase.class.getName();
 
 	private static Database db;
 
-	@BeforeClass
-	public static void setUp() throws SQLException {
+	private static Connection conn;
 
-		db = new Database(PATH_DB);
+	@BeforeClass
+	public static void beforeClass() throws SQLException {
+
+		conn = DriverManager.getConnection(PATH_DB);
+		db = new Database(conn);
 		db.criarTabela();
 	} // end setUp method
+
+	@AfterClass
+	public static void afterClass() {
+
+		try {
+
+			conn.close();
+		} catch (SQLException e) {
+
+			System.out.println("Não foi possível fechar a conexão");
+		}
+	}
 
 	@After
 	public void tearDown() throws SQLException {
@@ -43,7 +63,8 @@ public class TestDatabase {
 		db.reset();
 	} // end tearDown method
 
-	private void testSalvarRegistro(String[] dataRow) throws SQLException {
+	private void testSalvarRegistro(String[] dataRow) throws SQLException,
+			ParseException {
 
 		ArrayList<String[]> data = new ArrayList<String[]>(1);
 		data.add(dataRow);
@@ -57,42 +78,53 @@ public class TestDatabase {
 		assertNotNull(allRows);
 		assertEquals(1, allRows.size());
 
-		Object[] row0 = allRows.get(0);
+		Object[] firstRow = allRows.get(0);
 
 		for (int i = 0; i < dataRow.length; i++) {
 
 			if (i == 1) {
 
-				assertEquals(Integer.parseInt(dataRow[i]), (int) row0[i]);
+				assertEquals(Integer.parseInt(dataRow[i]), firstRow[i]);
+			} else if (i == 3) {
+				
+				assertEquals(sdf.parse(dataRow[i]), firstRow[i]);
 			} else {
-				assertEquals(dataRow[i], row0[i]);
+				assertEquals(dataRow[i], firstRow[i]);
 			}
+		}
+
+		for (int j = dataRow.length; j < firstRow.length; j++) {
+
+			assertNull(firstRow[j]);
 		}
 	}
 
 	@Test
-	public void testSalvarRegistroCom0Colunas() throws SQLException {
+	public void testSalvarRegistroCom0Colunas() throws SQLException,
+			ParseException {
 
 		testSalvarRegistro(new String[] {});
 	}
 
 	@Test
-	public void testSalvarRegistroCom3Colunas() throws SQLException {
+	public void testSalvarRegistroCom3Colunas() throws SQLException,
+			ParseException {
 
 		String[] dataRow = { "oi", "30", "fala?" };
 		testSalvarRegistro(dataRow);
 	}
 
 	@Test
-	public void testSalvarRegistroCom4Colunas() throws SQLException {
+	public void testSalvarRegistroCom4Colunas() throws SQLException,
+			ParseException {
 
 		String[] dataRow = { "Joao", "32", "Analista", "29/11/1970" };
 		testSalvarRegistro(dataRow);
 	} // end testSalvarRegistroComQuatroColunas method
 
 	@Test(expected = IllegalArgumentException.class)
-	// lança NumberFormatException, que é subclasse de IAException
-	public void seIdadeNaoIntegerEntaoLancaException() throws SQLException {
+	public void seIdadeNaoIntegerEntaoLancaException() throws SQLException,
+			ParseException {
 
 		String[] dataRow = { "oi", "NaoSouInteger", "fala?" };
 
@@ -109,11 +141,12 @@ public class TestDatabase {
 	 * registro deverá ser inserido no banco
 	 * 
 	 * @throws SQLException
+	 * @throws ParseException
 	 */
 
 	@Test(expected = BatchUpdateException.class)
 	public void seHouverRegistroCorrompidoEntaoNenhumDeveSerSalvo()
-			throws SQLException {
+			throws SQLException, ParseException {
 
 		List<String[]> registros = new ArrayList<>(2);
 
@@ -130,11 +163,10 @@ public class TestDatabase {
 		assertEquals(0, db.quantidadeDeRegistros().intValue());
 	} // end testRegistroCorrompido method
 
-	@Test(timeout = 3000)
-	// engraçado -> performance melhorou de ~3s para ~1.5s com as últimas
-	// alterações
-	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe3Segundos()
-			throws SQLException, FileNotFoundException, IOException {
+	@Test(timeout = 2000)
+	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2Segundos()
+			throws SQLException, FileNotFoundException, IOException,
+			ParseException {
 
 		List<String[]> records = LeitorArquivo
 				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS);
@@ -146,7 +178,8 @@ public class TestDatabase {
 
 	@Test(expected = IllegalArgumentException.class, timeout = 1000)
 	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe1Segundo()
-			throws FileNotFoundException, IOException, SQLException {
+			throws FileNotFoundException, IOException, SQLException,
+			ParseException {
 
 		List<String[]> records = LeitorArquivo
 				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA);
@@ -155,7 +188,8 @@ public class TestDatabase {
 	}
 
 	@Test
-	public void seColunaIdadeNullEntaoDeveRetornarNull() throws SQLException {
+	public void seColunaIdadeNullEntaoDeveRetornarNull() throws SQLException,
+			ParseException {
 
 		String[] dataRow = { "oi", "", "fala?" };
 
@@ -164,9 +198,9 @@ public class TestDatabase {
 
 		// exercise
 		db.salvar(data);
-		
+
 		Object[] row0 = db.all().get(0);
-		
+
 		assertNull(row0[1]);
 	}
 

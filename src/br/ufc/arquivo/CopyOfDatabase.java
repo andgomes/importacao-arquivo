@@ -1,22 +1,18 @@
 package br.ufc.arquivo;
 
 import java.sql.Connection;
-import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Database {
-
-	private static final int COLUNA_DATA_NASCIMENTO = 3;
-
-	private static final int COLUNA_IDADE = 1;
+// TODO: passar um objeto connection para o objeto database - IoC/dependency injection
+// ver: https://github.com/abevieiramota/learning-spring-mvc/blob/master/src/com/abevieiramota/springmvc/model/ContatoDAO.java
+public class CopyOfDatabase {
 
 	private int chunkSize = 1000;
 
@@ -33,18 +29,17 @@ public class Database {
 
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
 
-	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+	private String url;
 
-	private Connection conn;
+	public CopyOfDatabase(String url) {
 
-	public Database(Connection conn) {
-
-		this.conn = conn;
+		this.url = url;
 	}
 
 	public void reset() throws SQLException {
 
-		try (Statement stmt = this.conn.createStatement()) {
+		try (Connection conn = DriverManager.getConnection(this.url);
+				Statement stmt = conn.createStatement()) {
 
 			stmt.execute(QUERY_DELETE_ALL);
 		}
@@ -52,7 +47,8 @@ public class Database {
 
 	public void criarTabela() throws SQLException {
 
-		try (Statement stmt = this.conn.createStatement()) {
+		try (Connection conn = DriverManager.getConnection(this.url);
+				Statement stmt = conn.createStatement()) {
 
 			stmt.execute(QUERY_CREATE_TABLE);
 		}
@@ -62,24 +58,34 @@ public class Database {
 
 		List<Object[]> pessoas = null;
 
-		try (Statement stmt = this.conn.createStatement();
+		try (Connection conn = DriverManager.getConnection(this.url);
+				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
 
 			pessoas = new ArrayList<Object[]>();
 
 			while (rs.next()) {
 
+				// olhar rs.getMetadata() -> descobrir a quantidade de colunas
 				Object[] row = new Object[NUMBER_COLUMNS_DATABASE];
-				
-				row[0] = rs.getString(1);
-				row[1] = rs.getInt(2);
-				if(rs.wasNull()) {
-					row[1] = null;
-				}
-				row[2] = rs.getString(3);
-				row[3] = rs.getDate(4);
 
 				pessoas.add(row);
+				
+				for (int i = 1; i <= row.length; i++) {
+
+					if (i == 2) {
+
+						row[i - 1] = rs.getInt(i);
+
+						if (rs.wasNull()) {
+							row[i - 1] = null;
+						}
+
+					} else {
+						row[i - 1] = rs.getString(i);
+					}
+				}
+
 			}
 
 		}
@@ -92,9 +98,10 @@ public class Database {
 	// de forma que será criado registro na tabela preenchendo as x primeiras
 	// colunas
 	// ficando as demais com valor null
-	public void salvar(List<String[]> data) throws SQLException, ParseException {
+	public void salvar(List<String[]> data) throws SQLException {
 
-		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
+		try (Connection conn = DriverManager.getConnection(this.url);
+				PreparedStatement stmt = conn.prepareStatement(QUERY_INSERT)) {
 
 			try {
 
@@ -108,31 +115,18 @@ public class Database {
 
 					while (colsPreenchidas < dataRow.length) {
 
-						if (colsPreenchidas == COLUNA_IDADE) {
+						if (colsPreenchidas == 1) {
 
 							if (dataRow[colsPreenchidas].isEmpty()) {
-								pstmt.setNull(colsPreenchidas + 1,
-										Types.INTEGER);
+								stmt.setNull(colsPreenchidas + 1, Types.INTEGER);
 							} else {
 
-								pstmt.setInt(colsPreenchidas + 1, Integer
+								stmt.setInt(colsPreenchidas + 1, Integer
 										.parseInt(dataRow[colsPreenchidas]));
 							}
 
-						} else if (colsPreenchidas == COLUNA_DATA_NASCIMENTO) {
-
-							if (dataRow[colsPreenchidas].isEmpty()) {
-
-								pstmt.setNull(colsPreenchidas + 1, Types.DATE);
-							} else {
-
-								pstmt.setDate(colsPreenchidas + 1, new Date(sdf
-										.parse(dataRow[colsPreenchidas])
-										.getTime()));
-							}
-
 						} else {
-							pstmt.setString(colsPreenchidas + 1,
+							stmt.setString(colsPreenchidas + 1,
 									dataRow[colsPreenchidas]);
 						}
 
@@ -141,16 +135,16 @@ public class Database {
 
 					while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
 
-						pstmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
+						stmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
 						colsPreenchidas++;
 					}
 
-					pstmt.addBatch();
+					stmt.addBatch();
 					batchSize++;
 
 					if (batchSize == this.chunkSize) {
 
-						pstmt.executeBatch();
+						stmt.executeBatch();
 						batchSize = 0;
 					}
 				}
@@ -159,7 +153,7 @@ public class Database {
 										// lança exceção caso seja chamado
 					// executeBatch sem nenhum addBatch antes
 
-					pstmt.executeBatch();
+					stmt.executeBatch();
 				}
 
 				conn.commit();
@@ -177,7 +171,8 @@ public class Database {
 
 		Integer counter = null;
 
-		try (Statement stmt = this.conn.createStatement();
+		try (Connection conn = DriverManager.getConnection(this.url);
+				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
 
 			rs.next();
