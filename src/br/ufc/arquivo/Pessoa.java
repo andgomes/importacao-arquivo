@@ -14,14 +14,15 @@ public class Pessoa {
 		bitSet.set(COLUNA_IDADE);
 		
 		this.idade = idade;
-		
 	} // end setIdade method
 	
 	public Integer getIdade() {
 		
 		if (bitSet.get(COLUNA_IDADE)) {
+			
 			return idade;
 		} else {
+			
 			throw new ValueNotPresentException("Idade");		
 		}	
 		

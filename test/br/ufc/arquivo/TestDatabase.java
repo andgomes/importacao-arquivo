@@ -56,7 +56,7 @@ public class TestDatabase {
 			System.out.println("Não foi possível fechar a conexão");
 		}
 	}
-
+	
 	@After
 	public void tearDown() throws SQLException {
 
@@ -79,7 +79,7 @@ public class TestDatabase {
 		assertEquals(1, allRows.size());
 
 		Object[] firstRow = allRows.get(0);
-
+		
 		for (int i = 0; i < dataRow.length; i++) {
 
 			if (i == 1) {
@@ -105,7 +105,7 @@ public class TestDatabase {
 
 		testSalvarRegistro(new String[] {});
 	}
-
+	
 	@Test
 	public void testSalvarRegistroCom3Colunas() throws SQLException,
 			ParseException {
@@ -160,7 +160,7 @@ public class TestDatabase {
 
 		db.salvar(registros);
 
-		assertEquals(0, db.quantidadeDeRegistros().intValue());
+		assertEquals(0, db.quantidadeDeRegistros());
 	} // end testRegistroCorrompido method
 
 	@Test(timeout = 2000)
@@ -173,7 +173,7 @@ public class TestDatabase {
 
 		db.salvar(records);
 
-		assertEquals(100000, db.quantidadeDeRegistros().intValue());
+		assertEquals(100000, db.quantidadeDeRegistros());
 	} // end testSalvarArquivo method
 
 	@Test(expected = IllegalArgumentException.class, timeout = 1000)
@@ -202,6 +202,35 @@ public class TestDatabase {
 		Object[] row0 = db.all().get(0);
 
 		assertNull(row0[1]);
+	}
+	
+	@Test
+	// TODO: analisar por que esse teste conclui se executado sozinho, mas para caso executado com os demais
+	// dica -> connection aberta lokando a tabela
+	// TODO: corrigir o Database
+	// TODO: dar um nome decente para esse teste
+	public void test() throws FileNotFoundException, IOException, SQLException {
+		
+		List<String[]> records = LeitorArquivo
+				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS);
+		
+		try(Connection conn = DriverManager.getConnection(PATH_DB)) {
+
+			Database db = new Database(conn);
+			
+			db.salvar(records);
+			db.reset();
+		} catch (SQLException | ParseException e) {
+			System.err.println(e);
+		}
+		
+		try(Connection conn = DriverManager.getConnection(PATH_DB)) {
+			
+			Database db = new Database(conn);
+			
+			assertEquals(0, db.quantidadeDeRegistros());
+		} catch (SQLException e) {
+		}
 	}
 
 }

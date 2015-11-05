@@ -10,13 +10,10 @@ import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Database {
-
-	private static final int COLUNA_DATA_NASCIMENTO = 3;
-
-	private static final int COLUNA_IDADE = 1;
 
 	private int chunkSize = 1000;
 
@@ -41,7 +38,7 @@ public class Database {
 
 		this.conn = conn;
 	}
-
+	
 	public void reset() throws SQLException {
 
 		try (Statement stmt = this.conn.createStatement()) {
@@ -70,10 +67,10 @@ public class Database {
 			while (rs.next()) {
 
 				Object[] row = new Object[NUMBER_COLUMNS_DATABASE];
-				
+
 				row[0] = rs.getString(1);
 				row[1] = rs.getInt(2);
-				if(rs.wasNull()) {
+				if (rs.wasNull()) {
 					row[1] = null;
 				}
 				row[2] = rs.getString(3);
@@ -95,7 +92,7 @@ public class Database {
 	public void salvar(List<String[]> data) throws SQLException, ParseException {
 
 		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
-
+			
 			try {
 
 				conn.setAutoCommit(false);
@@ -104,46 +101,67 @@ public class Database {
 
 				for (String[] dataRow : data) {
 
-					int colsPreenchidas = 0;
+					String[] dataRowCompleted = Arrays.copyOf(dataRow,
+							NUMBER_COLUMNS_DATABASE);
 
-					while (colsPreenchidas < dataRow.length) {
-
-						if (colsPreenchidas == COLUNA_IDADE) {
-
-							if (dataRow[colsPreenchidas].isEmpty()) {
-								pstmt.setNull(colsPreenchidas + 1,
-										Types.INTEGER);
-							} else {
-
-								pstmt.setInt(colsPreenchidas + 1, Integer
-										.parseInt(dataRow[colsPreenchidas]));
-							}
-
-						} else if (colsPreenchidas == COLUNA_DATA_NASCIMENTO) {
-
-							if (dataRow[colsPreenchidas].isEmpty()) {
-
-								pstmt.setNull(colsPreenchidas + 1, Types.DATE);
-							} else {
-
-								pstmt.setDate(colsPreenchidas + 1, new Date(sdf
-										.parse(dataRow[colsPreenchidas])
-										.getTime()));
-							}
-
-						} else {
-							pstmt.setString(colsPreenchidas + 1,
-									dataRow[colsPreenchidas]);
-						}
-
-						colsPreenchidas++;
+					// nome
+					pstmt.setString(1, dataRowCompleted[0]);
+					// idade
+					if (dataRowCompleted[1] == null || dataRowCompleted[1].isEmpty()) {
+						pstmt.setNull(2, Types.INTEGER);
+					} else {
+						pstmt.setInt(2, Integer.parseInt(dataRowCompleted[1]));
+					}
+					// endereço
+					pstmt.setString(3, dataRowCompleted[2]);
+					// data de nascimento
+					if (dataRowCompleted[3] == null) {
+						pstmt.setNull(4, Types.DATE);
+					} else {
+						pstmt.setDate(4, new Date(sdf.parse(dataRowCompleted[3])
+								.getTime()));
 					}
 
-					while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
-
-						pstmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
-						colsPreenchidas++;
-					}
+					// int colsPreenchidas = 0;
+					//
+					// while (colsPreenchidas < dataRow.length) {
+					//
+					// if (colsPreenchidas == COLUNA_IDADE) {
+					//
+					// if (dataRow[colsPreenchidas].isEmpty()) {
+					// pstmt.setNull(colsPreenchidas + 1,
+					// Types.INTEGER);
+					// } else {
+					//
+					// pstmt.setInt(colsPreenchidas + 1, Integer
+					// .parseInt(dataRow[colsPreenchidas]));
+					// }
+					//
+					// } else if (colsPreenchidas == COLUNA_DATA_NASCIMENTO) {
+					//
+					// if (dataRow[colsPreenchidas].isEmpty()) {
+					//
+					// pstmt.setNull(colsPreenchidas + 1, Types.DATE);
+					// } else {
+					//
+					// pstmt.setDate(colsPreenchidas + 1, new Date(sdf
+					// .parse(dataRow[colsPreenchidas])
+					// .getTime()));
+					// }
+					//
+					// } else {
+					// pstmt.setString(colsPreenchidas + 1,
+					// dataRow[colsPreenchidas]);
+					// }
+					//
+					// colsPreenchidas++;
+					// }
+					//
+					// while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
+					//
+					// pstmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
+					// colsPreenchidas++;
+					// }
 
 					pstmt.addBatch();
 					batchSize++;
@@ -163,7 +181,8 @@ public class Database {
 				}
 
 				conn.commit();
-
+				
+				conn.setAutoCommit(true);
 			} catch (SQLException e) {
 
 				conn.rollback();
@@ -173,9 +192,9 @@ public class Database {
 		}
 	}
 
-	public Integer quantidadeDeRegistros() throws SQLException {
+	public int quantidadeDeRegistros() throws SQLException {
 
-		Integer counter = null;
+		int counter;
 
 		try (Statement stmt = this.conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
@@ -191,5 +210,11 @@ public class Database {
 
 		this.chunkSize = size;
 	} // end setChunckSize method
+	
+	public void closeConnection() throws SQLException {
+		
+		conn.close();
+		
+	} // end closeConnection method
 
 } // end Database class

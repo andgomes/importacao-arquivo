@@ -27,14 +27,12 @@ public class TestPessoa {
 		conn = DriverManager.getConnection(PATH_DB);
 		db = new Database(conn);
 		db.criarTabela();
-		
 	}
 	
 	@AfterClass
 	public static void after() throws SQLException {
 		
 		conn.close();
-		
 	} // end after method
 	
 	@Test
@@ -68,11 +66,11 @@ public class TestPessoa {
 		rows.add(new String[] {"Joao", "23", "Analista"});
 		
 		db.salvar(rows);
-		
+
+		// qual a necessidade do código acima?
 		Pessoa pessoa = new Pessoa();
 		
 		pessoa.getIdade();
-		
 	} // end testGetIdadeNaoSetada method
 
 } // end TestConverter class
