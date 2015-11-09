@@ -9,6 +9,8 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import br.ufc.arquivo.reader.LeitorArquivo;
+
 public class TestLeitorArquivo {
 
 	private static List<String[]> recordsDoArquivo1;

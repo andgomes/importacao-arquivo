@@ -9,7 +9,7 @@ import org.junit.Test;
 public class TestArrays {
 	
 	@Test
-	public void copyOfRangeToSignificaAPosicaoDoUltimoElemento() {
+	public void copyOfRangeParametroToSignificaAPosicaoDoUltimoElemento() {
 		
 		String[] nomes = {"ab", "ju", "del"};
 		

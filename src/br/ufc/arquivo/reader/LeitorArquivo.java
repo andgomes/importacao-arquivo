@@ -1,4 +1,4 @@
-package br.ufc.arquivo;
+package br.ufc.arquivo.reader;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,6 +10,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+// XXX: iterator
 public class LeitorArquivo {
 	
 	private static final char FILE_SEPARATOR = ';';

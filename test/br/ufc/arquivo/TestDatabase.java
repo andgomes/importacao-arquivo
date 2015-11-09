@@ -13,12 +13,15 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import br.ufc.arquivo.database.Database;
+import br.ufc.arquivo.reader.LeitorArquivo;
 
 public class TestDatabase {
 
@@ -27,7 +30,7 @@ public class TestDatabase {
 	private static final String FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA = "./resources/pessoas_linha_1_corrompida.csv";
 
 	private static final String STRING_SIZE_GT_50 = "AAAAAAAAAA_BBBBBBBBBB_CCCCCCCCCC_DDDDDDDDDD_EEEEEEEEEE";
-	
+
 	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/"
@@ -37,66 +40,48 @@ public class TestDatabase {
 
 	private static Connection conn;
 
+	/* beforeClass apenas cria a tabela*/
 	@BeforeClass
 	public static void beforeClass() throws SQLException {
 
 		conn = DriverManager.getConnection(PATH_DB);
 		db = new Database(conn);
 		db.criarTabela();
-	} // end setUp method
-
-	@AfterClass
-	public static void afterClass() {
-
-		try {
-
-			conn.close();
-		} catch (SQLException e) {
-
-			System.out.println("Não foi possível fechar a conexão");
-		}
 	}
 	
 	@After
 	public void tearDown() throws SQLException {
-
+		
 		db.reset();
 	} // end tearDown method
 
 	private void testSalvarRegistro(String[] dataRow) throws SQLException,
 			ParseException {
 
-		ArrayList<String[]> data = new ArrayList<String[]>(1);
+		List<String[]> data = new ArrayList<String[]>(1);
 		data.add(dataRow);
 
 		// exercise
 		db.salvar(data);
 
-		// verifica se foi adicionado corretamente
+		// verify
 		List<Object[]> allRows = db.all();
 
 		assertNotNull(allRows);
 		assertEquals(1, allRows.size());
 
 		Object[] firstRow = allRows.get(0);
-		
-		for (int i = 0; i < dataRow.length; i++) {
 
-			if (i == 1) {
+		String[] dataRowCompleted = Arrays.copyOf(dataRow, 4);
 
-				assertEquals(Integer.parseInt(dataRow[i]), firstRow[i]);
-			} else if (i == 3) {
-				
-				assertEquals(sdf.parse(dataRow[i]), firstRow[i]);
-			} else {
-				assertEquals(dataRow[i], firstRow[i]);
-			}
-		}
-
-		for (int j = dataRow.length; j < firstRow.length; j++) {
-
-			assertNull(firstRow[j]);
-		}
+		assertEquals(dataRowCompleted[0], firstRow[0]);
+		assertEquals(
+				dataRowCompleted[1] == null ? null
+						: Integer.parseInt(dataRowCompleted[1]), firstRow[1]);
+		assertEquals(dataRowCompleted[2], firstRow[2]);
+		assertEquals(
+				dataRowCompleted[3] == null ? null
+						: sdf.parse(dataRowCompleted[3]), firstRow[3]);
 	}
 
 	@Test
@@ -105,12 +90,12 @@ public class TestDatabase {
 
 		testSalvarRegistro(new String[] {});
 	}
-	
+
 	@Test
 	public void testSalvarRegistroCom3Colunas() throws SQLException,
 			ParseException {
 
-		String[] dataRow = { "oi", "30", "fala?" };
+		String[] dataRow = { "Juliana", "30", "Médico" };
 		testSalvarRegistro(dataRow);
 	}
 
@@ -120,13 +105,13 @@ public class TestDatabase {
 
 		String[] dataRow = { "Joao", "32", "Analista", "29/11/1970" };
 		testSalvarRegistro(dataRow);
-	} // end testSalvarRegistroComQuatroColunas method
+	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void seIdadeNaoIntegerEntaoLancaException() throws SQLException,
-			ParseException {
+	public void seIdadeNaoIntegerEntaoLancaIllegalArgumentException()
+			throws SQLException, ParseException {
 
-		String[] dataRow = { "oi", "NaoSouInteger", "fala?" };
+		String[] dataRow = { "Aderbaldo", "NaoSouInteger", "Professor" };
 
 		ArrayList<String[]> data = new ArrayList<String[]>(1);
 		data.add(dataRow);
@@ -136,16 +121,17 @@ public class TestDatabase {
 	}
 
 	/**
-	 * Dado o chunkSize = 1, o primeiro registro será inserido em batch e então
-	 * virá o segundo registro, inválido Com a inserção em transação, nenhum
-	 * registro deverá ser inserido no banco
+	 * Serão inseridos 2 registros: o primeiro válido, o segundo inválido.
+	 * Utilizando-se um chunkSize = 1, o primeiro registro será inserido em lote
+	 * e espera-se que o segundo registro não seja inserido(inválido) e que isso
+	 * cause um rollback na inserção do primeiro registro(primeiro lote).
 	 * 
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
 
 	@Test(expected = BatchUpdateException.class)
-	public void seHouverRegistroCorrompidoEntaoNenhumDeveSerSalvo()
+	public void seHouverRegistroCorrompidoEntaoNenhumRegistroDeveSerSalvo()
 			throws SQLException, ParseException {
 
 		List<String[]> registros = new ArrayList<>(2);
@@ -202,35 +188,6 @@ public class TestDatabase {
 		Object[] row0 = db.all().get(0);
 
 		assertNull(row0[1]);
-	}
-	
-	@Test
-	// TODO: analisar por que esse teste conclui se executado sozinho, mas para caso executado com os demais
-	// dica -> connection aberta lokando a tabela
-	// TODO: corrigir o Database
-	// TODO: dar um nome decente para esse teste
-	public void test() throws FileNotFoundException, IOException, SQLException {
-		
-		List<String[]> records = LeitorArquivo
-				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS);
-		
-		try(Connection conn = DriverManager.getConnection(PATH_DB)) {
-
-			Database db = new Database(conn);
-			
-			db.salvar(records);
-			db.reset();
-		} catch (SQLException | ParseException e) {
-			System.err.println(e);
-		}
-		
-		try(Connection conn = DriverManager.getConnection(PATH_DB)) {
-			
-			Database db = new Database(conn);
-			
-			assertEquals(0, db.quantidadeDeRegistros());
-		} catch (SQLException e) {
-		}
 	}
 
 }

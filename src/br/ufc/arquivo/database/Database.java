@@ -1,4 +1,4 @@
-package br.ufc.arquivo;
+package br.ufc.arquivo.database;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+// XXX: iterator
 public class Database {
 
 	private int chunkSize = 1000;
 
 	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), "
-			+ "idade integer, profissão varchar(50), data_nascimento varchar(10))";
+			+ "idade integer, profissão varchar(50), data_nascimento date)";
 
 	private static final int NUMBER_COLUMNS_DATABASE = 4;
 
@@ -122,47 +123,6 @@ public class Database {
 								.getTime()));
 					}
 
-					// int colsPreenchidas = 0;
-					//
-					// while (colsPreenchidas < dataRow.length) {
-					//
-					// if (colsPreenchidas == COLUNA_IDADE) {
-					//
-					// if (dataRow[colsPreenchidas].isEmpty()) {
-					// pstmt.setNull(colsPreenchidas + 1,
-					// Types.INTEGER);
-					// } else {
-					//
-					// pstmt.setInt(colsPreenchidas + 1, Integer
-					// .parseInt(dataRow[colsPreenchidas]));
-					// }
-					//
-					// } else if (colsPreenchidas == COLUNA_DATA_NASCIMENTO) {
-					//
-					// if (dataRow[colsPreenchidas].isEmpty()) {
-					//
-					// pstmt.setNull(colsPreenchidas + 1, Types.DATE);
-					// } else {
-					//
-					// pstmt.setDate(colsPreenchidas + 1, new Date(sdf
-					// .parse(dataRow[colsPreenchidas])
-					// .getTime()));
-					// }
-					//
-					// } else {
-					// pstmt.setString(colsPreenchidas + 1,
-					// dataRow[colsPreenchidas]);
-					// }
-					//
-					// colsPreenchidas++;
-					// }
-					//
-					// while (colsPreenchidas < NUMBER_COLUMNS_DATABASE) {
-					//
-					// pstmt.setNull(colsPreenchidas + 1, Types.VARCHAR);
-					// colsPreenchidas++;
-					// }
-
 					pstmt.addBatch();
 					batchSize++;
 
@@ -204,17 +164,11 @@ public class Database {
 		}
 
 		return counter;
-	} // end quantidadeDeRegistros method
+	} 
 
 	public void setChunkSize(int size) {
 
 		this.chunkSize = size;
-	} // end setChunckSize method
+	} 
 	
-	public void closeConnection() throws SQLException {
-		
-		conn.close();
-		
-	} // end closeConnection method
-
-} // end Database class
+}

@@ -1,24 +1,48 @@
 package br.ufc.arquivo;
 
+import br.ufc.arquivo.model.Pessoa;
+import java.util.Date;
 import java.util.List;
 
+// XXX: iterator
 public class Converter {
 
 	private List<Object[]> rows;
-
+	private int next = 0;
+	
 	public Converter(List<Object[]> rows) {
 		
 		this.rows = rows;
 		
-	} // end Converter constructor
+	}
 	
-	public int getIdade(int row) {
+	public Pessoa nextPessoa() {
 		
-		int idade = Integer.parseInt(
-				rows.get(row)[1].toString());
+		String nome = null;
+		Integer idade = null;
+		String cargo = null;
+		Date nascimento = null;
 		
-		return idade;
+		if (rows.get(next)[0] != null) {
+			nome = (String) rows.get(next)[0];
+		}
 		
-	} // end getIdade method
+		if (rows.get(next)[1] != null) {
+			idade = (Integer) rows.get(next)[1];
+		}
+		
+		if (rows.get(next)[2] != null) {
+			cargo = (String) rows.get(next)[2];
+		}
+		
+		if (rows.get(next)[3] != null) {
+			nascimento = (Date) rows.get(next)[3];
+		}
+		
+		++next;
+		
+		return new Pessoa(nome, idade, cargo, nascimento);
+		
+	}
 	
-} // end Converter class
+}
