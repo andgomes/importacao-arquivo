@@ -11,6 +11,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 // XXX: iterator
+// TODO: pessoas4 -> adicionada coluna CPF(fake - n achei fonte de 10k cpfs válidos)
+// descobrir o padrão, realizar a leitura e validação
 public class LeitorArquivo {
 	
 	private static final char FILE_SEPARATOR = ';';
