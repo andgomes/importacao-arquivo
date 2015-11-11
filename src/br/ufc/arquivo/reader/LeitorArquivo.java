@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -21,7 +22,7 @@ public class LeitorArquivo implements Iterator<String[]> {
 	private static final CSVFormat FILE_FORMAT = CSVFormat
 			.newFormat(FILE_SEPARATOR).withHeader().withQuote(FILE_QUOTE_CHAR);
 
-	private int next = 0;
+	private int nextElement = 0;
 	private List<String[]> rows = new LinkedList<>();
 	
 	public LeitorArquivo(String filePath) throws IOException {
@@ -44,29 +45,37 @@ public class LeitorArquivo implements Iterator<String[]> {
 		
 	}
 	
-	public static List<String[]> lerRecords(String filepath)
-			throws FileNotFoundException, IOException {
+//	public static List<String[]> lerRecords(String filepath)
+//			throws FileNotFoundException, IOException {
+//		
+//		List<String[]> recordsAsString = new LinkedList<String[]>();
+//
+//		try (FileReader reader = new FileReader(filepath);
+//				CSVParser parser = new CSVParser(reader, FILE_FORMAT)) {
+//			
+//			int nCols = parser.getHeaderMap().keySet().size();
+//
+//			for (CSVRecord record : parser) {
+//
+//				String[] recordAsStringArray = record.toMap().values()
+//						.toArray(new String[nCols]);
+//
+//				recordsAsString.add(recordAsStringArray);
+//			}
+//
+//		}
+//
+//		return recordsAsString;
+//
+//	}
+	
+	/*XXX: método para os testes anteriores que utilizavam a lista das linhas
+	 	diretamente passarem mais fácil*/
+	public List<String[]> getRows() {
 		
-		List<String[]> recordsAsString = new LinkedList<String[]>();
-
-		try (FileReader reader = new FileReader(filepath);
-				CSVParser parser = new CSVParser(reader, FILE_FORMAT)) {
-			
-			int nCols = parser.getHeaderMap().keySet().size();
-
-			for (CSVRecord record : parser) {
-
-				String[] recordAsStringArray = record.toMap().values()
-						.toArray(new String[nCols]);
-
-				recordsAsString.add(recordAsStringArray);
-			}
-
-		}
-
-		return recordsAsString;
-
-	} // end lerRecords method
+		return rows;
+		
+	}
 	
 	public boolean hasNext() {
 
@@ -76,7 +85,17 @@ public class LeitorArquivo implements Iterator<String[]> {
 	
 	public String[] next() {
 		
-		return rows.get(next++);
+		if (nextElement >= rows.size()) {
+			throw new NoSuchElementException();
+		}
+		
+		return rows.get(nextElement++);
+		
+	}
+	
+	public int size() {
+		
+		return rows.size();
 		
 	}
 	

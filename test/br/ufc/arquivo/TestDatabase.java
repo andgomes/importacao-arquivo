@@ -154,8 +154,8 @@ public class TestDatabase {
 			throws SQLException, FileNotFoundException, IOException,
 			ParseException {
 
-		List<String[]> records = LeitorArquivo
-				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS);
+		List<String[]> records = new LeitorArquivo(
+				FILE_PATH_ARQUIVO_100K_REGISTROS).getRows();
 
 		db.salvar(records);
 
@@ -167,8 +167,8 @@ public class TestDatabase {
 			throws FileNotFoundException, IOException, SQLException,
 			ParseException {
 
-		List<String[]> records = LeitorArquivo
-				.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA);
+		List<String[]> records = new LeitorArquivo(
+				FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA).getRows();
 
 		db.salvar(records);
 	}

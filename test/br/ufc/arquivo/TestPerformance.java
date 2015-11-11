@@ -41,7 +41,8 @@ public class TestPerformance {
 	public TestPerformance(int chunkSize) throws FileNotFoundException, IOException {
 
 		this.chunkSize = chunkSize;
-		this.records = LeitorArquivo.lerRecords(FILE_PATH_ARQUIVO_100K_REGISTROS);
+		this.records = new LeitorArquivo(FILE_PATH_ARQUIVO_100K_REGISTROS).
+				getRows();
 	}
 
 	@Parameters(name = "chunkSize = {0}")

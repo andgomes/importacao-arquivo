@@ -2,6 +2,7 @@ package br.ufc.arquivo;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -93,7 +94,7 @@ public class TestIntegracao {
 	public void lerArquivoESalvaNoBanco() throws IOException, SQLException,
 			ParseException {
 
-		List<String[]> records = LeitorArquivo.lerRecords(filePath);
+		List<String[]> records = new LeitorArquivo(filePath).getRows();
 
 		db.salvar(records);
 
@@ -141,5 +142,12 @@ public class TestIntegracao {
 
 		assertEquals(null, pessoa.getIdade());
 	} // end testGetIdadeNaoSetada method
+
+	@Test
+	public void testDatabaseAsIterator() {
+
+		fail();
+		
+	} 
 
 }
