@@ -71,5 +71,23 @@ public class TestLeitorArquivo {
 		assertArrayEquals(FILE_PESSOAS3_ULTIMA_LINHA,
 				recordsDoArquivo3.get(recordsDoArquivo3.size() - 1));
 	}
+	
+	//XXX: Testar foreach 
+	@Test
+	public void testLeitorArquivoAsIterator() throws IOException {
+		
+		LeitorArquivo leitorArquivo = 
+				new LeitorArquivo("./resources/pessoas_sub.csv");
+		
+		String[] row0 = null;
+		
+		if (leitorArquivo.hasNext()) {
+			row0 = leitorArquivo.next();
+		}
+		
+		assertEquals("Abelardo 0", row0[0]);
+		
+	} 
+	
 
 }

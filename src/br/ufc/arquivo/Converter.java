@@ -3,6 +3,7 @@ package br.ufc.arquivo;
 import br.ufc.arquivo.model.Pessoa;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 // XXX: iterator
 public class Converter {
@@ -17,6 +18,10 @@ public class Converter {
 	}
 	
 	public Pessoa nextPessoa() {
+		
+		if (next >= rows.size()) {
+			throw new NoSuchElementException();
+		}
 		
 		String nome = null;
 		Integer idade = null;
