@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import br.ufc.arquivo.model.Pessoa;
 
+@Deprecated
 public class TestConverter {
 
 	@Test
@@ -27,12 +28,12 @@ public class TestConverter {
 		assertEquals("John", pessoa.getNome());
 		assertEquals(new Integer(23), pessoa.getIdade());
 	}
-	
+
 	@Test(expected = NoSuchElementException.class)
 	public void seNaoTemMaisPessoaEntaoNextPessoaLancaException() {
-		
+
 		Converter emptyConverter = new Converter(new ArrayList<Object[]>());
-		
+
 		emptyConverter.nextPessoa();
 	}
 

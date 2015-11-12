@@ -1,4 +1,4 @@
-package br.ufc.arquivo;
+package br.ufc.arquivo.database;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,7 +21,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import br.ufc.arquivo.database.Database;
+import br.ufc.arquivo.model.Pessoa;
 import br.ufc.arquivo.reader.LeitorArquivo;
+import br.ufc.arquivo.reader.LeitorArquivoV2;
 
 public class TestDatabase {
 
@@ -40,18 +42,18 @@ public class TestDatabase {
 
 	private static Connection conn;
 
-	/* beforeClass apenas cria a tabela*/
+	/* beforeClass apenas cria a tabela */
 	@BeforeClass
 	public static void beforeClass() throws SQLException {
 
 		conn = DriverManager.getConnection(PATH_DB);
 		db = new Database(conn);
-		db.criarTabela();
+		db.createTable();
 	}
-	
+
 	@After
 	public void tearDown() throws SQLException {
-		
+
 		db.reset();
 	} // end tearDown method
 
@@ -65,23 +67,25 @@ public class TestDatabase {
 		db.salvar(data);
 
 		// verify
-		List<Object[]> allRows = db.all();
+		List<Pessoa> pessoas = db.all();
 
-		assertNotNull(allRows);
-		assertEquals(1, allRows.size());
+		assertNotNull(pessoas);
+		assertEquals(1, pessoas.size());
 
-		Object[] firstRow = allRows.get(0);
+		Pessoa firstPessoa = pessoas.get(0);
 
 		String[] dataRowCompleted = Arrays.copyOf(dataRow, 4);
 
-		assertEquals(dataRowCompleted[0], firstRow[0]);
+		assertEquals(dataRowCompleted[0], firstPessoa.getNome());
 		assertEquals(
 				dataRowCompleted[1] == null ? null
-						: Integer.parseInt(dataRowCompleted[1]), firstRow[1]);
-		assertEquals(dataRowCompleted[2], firstRow[2]);
+						: Integer.parseInt(dataRowCompleted[1]),
+				firstPessoa.getIdade());
+		assertEquals(dataRowCompleted[2], firstPessoa.getCargo());
 		assertEquals(
 				dataRowCompleted[3] == null ? null
-						: sdf.parse(dataRowCompleted[3]), firstRow[3]);
+						: sdf.parse(dataRowCompleted[3]),
+				firstPessoa.getDataNascimento());
 	}
 
 	@Test
@@ -146,9 +150,11 @@ public class TestDatabase {
 
 		db.salvar(registros);
 
-		assertEquals(0, db.quantidadeDeRegistros());
+		assertEquals(0, db.size());
 	} // end testRegistroCorrompido method
 
+	// XXX: diferença de performances entre LeitorArquivo e LeitorArquivoV2,
+	// principalmente no segundo test(primeiro registro corrompido)
 	@Test(timeout = 2000)
 	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2Segundos()
 			throws SQLException, FileNotFoundException, IOException,
@@ -159,7 +165,20 @@ public class TestDatabase {
 
 		db.salvar(records);
 
-		assertEquals(100000, db.quantidadeDeRegistros());
+		assertEquals(100000, db.size());
+	} // end testSalvarArquivo method
+
+	@Test(timeout = 2000)
+	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2SegundosV2()
+			throws SQLException, FileNotFoundException, IOException,
+			ParseException {
+
+		LeitorArquivoV2 leitor = new LeitorArquivoV2(
+				FILE_PATH_ARQUIVO_100K_REGISTROS);
+
+		db.save(leitor);
+
+		assertEquals(100000, db.size());
 	} // end testSalvarArquivo method
 
 	@Test(expected = IllegalArgumentException.class, timeout = 1000)
@@ -171,6 +190,17 @@ public class TestDatabase {
 				FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA).getRows();
 
 		db.salvar(records);
+	}
+
+	@Test(expected = IllegalArgumentException.class, timeout = 1000)
+	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe1SegundoV2()
+			throws FileNotFoundException, IOException, SQLException,
+			ParseException {
+
+		LeitorArquivoV2 leitor = new LeitorArquivoV2(
+				FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA);
+
+		db.save(leitor);
 	}
 
 	@Test
@@ -185,9 +215,9 @@ public class TestDatabase {
 		// exercise
 		db.salvar(data);
 
-		Object[] row0 = db.all().get(0);
+		Pessoa firstPessoa = db.all().get(0);
 
-		assertNull(row0[1]);
+		assertNull(firstPessoa.getIdade());
 	}
 
 }

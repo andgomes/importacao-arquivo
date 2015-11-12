@@ -13,25 +13,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-// XXX: iterator
+import br.ufc.arquivo.model.Pessoa;
+
 public class Database {
 
 	private int chunkSize = 1000;
+	private static final int NUMBER_COLUMNS_DATABASE = 4;
+	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), "
 			+ "idade integer, profissão varchar(50), data_nascimento date)";
-
-	private static final int NUMBER_COLUMNS_DATABASE = 4;
-
 	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?);";
-
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
-
 	private static final String QUERY_DELETE_ALL = "delete from pessoa";
-
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
-
-	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private Connection conn;
 
@@ -39,7 +34,7 @@ public class Database {
 
 		this.conn = conn;
 	}
-	
+
 	public void reset() throws SQLException {
 
 		try (Statement stmt = this.conn.createStatement()) {
@@ -48,7 +43,7 @@ public class Database {
 		}
 	}
 
-	public void criarTabela() throws SQLException {
+	public void createTable() throws SQLException {
 
 		try (Statement stmt = this.conn.createStatement()) {
 
@@ -56,44 +51,38 @@ public class Database {
 		}
 	}
 
-	public List<Object[]> all() throws SQLException {
+	public List<Pessoa> all() throws SQLException {
 
-		List<Object[]> pessoas = null;
+		List<Pessoa> pessoas = null;
 
 		try (Statement stmt = this.conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
 
-			pessoas = new ArrayList<Object[]>();
+			pessoas = new ArrayList<Pessoa>();
 
 			while (rs.next()) {
 
-				Object[] row = new Object[NUMBER_COLUMNS_DATABASE];
-
-				row[0] = rs.getString(1);
-				row[1] = rs.getInt(2);
+				String nome = rs.getString(1);
+				Integer idade = rs.getInt(2);
 				if (rs.wasNull()) {
-					row[1] = null;
+					idade = null;
 				}
-				row[2] = rs.getString(3);
-				row[3] = rs.getDate(4);
+				String cargo = rs.getString(3);
+				Date dataNascimento = rs.getDate(4);
 
-				pessoas.add(row);
+				pessoas.add(new Pessoa(nome, idade, cargo, dataNascimento));
 			}
-
 		}
 
 		return pessoas;
 
 	}
 
-	// esperada list de String[] com length igual a x
-	// de forma que será criado registro na tabela preenchendo as x primeiras
-	// colunas
-	// ficando as demais com valor null
-	public void salvar(List<String[]> data) throws SQLException, ParseException {
+	public void save(Iterable<String[]> data) throws SQLException,
+			ParseException {
 
 		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
-			
+
 			try {
 
 				conn.setAutoCommit(false);
@@ -108,19 +97,20 @@ public class Database {
 					// nome
 					pstmt.setString(1, dataRowCompleted[0]);
 					// idade
-					if (dataRowCompleted[1] == null || dataRowCompleted[1].isEmpty()) {
+					if (dataRowCompleted[1] == null
+							|| dataRowCompleted[1].isEmpty()) {
 						pstmt.setNull(2, Types.INTEGER);
 					} else {
 						pstmt.setInt(2, Integer.parseInt(dataRowCompleted[1]));
 					}
-					// endereço
+					// cargo
 					pstmt.setString(3, dataRowCompleted[2]);
 					// data de nascimento
 					if (dataRowCompleted[3] == null) {
 						pstmt.setNull(4, Types.DATE);
 					} else {
-						pstmt.setDate(4, new Date(sdf.parse(dataRowCompleted[3])
-								.getTime()));
+						pstmt.setDate(4, new Date(sdf
+								.parse(dataRowCompleted[3]).getTime()));
 					}
 
 					pstmt.addBatch();
@@ -141,7 +131,76 @@ public class Database {
 				}
 
 				conn.commit();
-				
+
+				conn.setAutoCommit(true);
+			} catch (SQLException e) {
+
+				conn.rollback();
+				throw e;
+			}
+
+		}
+
+	}
+
+	// esperada list de String[] com length igual a x
+	// de forma que será criado registro na tabela preenchendo as x primeiras
+	// colunas
+	// ficando as demais com valor null
+	@Deprecated
+	public void salvar(List<String[]> data) throws SQLException, ParseException {
+
+		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
+
+			try {
+
+				conn.setAutoCommit(false);
+
+				int batchSize = 0;
+
+				for (String[] dataRow : data) {
+
+					String[] dataRowCompleted = Arrays.copyOf(dataRow,
+							NUMBER_COLUMNS_DATABASE);
+
+					// nome
+					pstmt.setString(1, dataRowCompleted[0]);
+					// idade
+					if (dataRowCompleted[1] == null
+							|| dataRowCompleted[1].isEmpty()) {
+						pstmt.setNull(2, Types.INTEGER);
+					} else {
+						pstmt.setInt(2, Integer.parseInt(dataRowCompleted[1]));
+					}
+					// endereço
+					pstmt.setString(3, dataRowCompleted[2]);
+					// data de nascimento
+					if (dataRowCompleted[3] == null) {
+						pstmt.setNull(4, Types.DATE);
+					} else {
+						pstmt.setDate(4, new Date(sdf
+								.parse(dataRowCompleted[3]).getTime()));
+					}
+
+					pstmt.addBatch();
+					batchSize++;
+
+					if (batchSize == this.chunkSize) {
+
+						pstmt.executeBatch();
+						batchSize = 0;
+					}
+				}
+
+				if (batchSize > 0) { // necessário, pois o driver do hsqldb
+										// lança exceção caso seja chamado
+					// executeBatch sem nenhum addBatch antes
+
+					pstmt.executeBatch();
+				}
+
+				conn.commit();
+
 				conn.setAutoCommit(true);
 			} catch (SQLException e) {
 
@@ -152,23 +211,23 @@ public class Database {
 		}
 	}
 
-	public int quantidadeDeRegistros() throws SQLException {
+	public int size() throws SQLException {
 
-		int counter;
+		int size;
 
 		try (Statement stmt = this.conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_COUNT)) {
 
 			rs.next();
-			counter = rs.getInt(1);
+			size = rs.getInt(1);
 		}
 
-		return counter;
-	} 
+		return size;
+	}
 
 	public void setChunkSize(int size) {
 
 		this.chunkSize = size;
-	} 
-	
+	}
+
 }

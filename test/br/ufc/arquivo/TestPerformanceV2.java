@@ -19,15 +19,15 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import br.ufc.arquivo.database.Database;
-import br.ufc.arquivo.reader.LeitorArquivo;
+import br.ufc.arquivo.reader.LeitorArquivoV2;
 
-// 7.7
+// 7.73
 @Ignore
 @RunWith(Parameterized.class)
-public class TestPerformance {
+public class TestPerformanceV2 {
 
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/"
-			+ TestPerformance.class.getName();
+			+ TestPerformanceV2.class.getName();
 
 	private static final String FILE_PATH_ARQUIVO_100K_REGISTROS = "./resources/pessoas.csv";
 
@@ -37,13 +37,12 @@ public class TestPerformance {
 
 	private int chunkSize;
 	
-	private List<String[]> records;
-
-	public TestPerformance(int chunkSize) throws FileNotFoundException, IOException {
+	private LeitorArquivoV2 leitor;
+	
+	public TestPerformanceV2(int chunkSize) throws FileNotFoundException, IOException {
 
 		this.chunkSize = chunkSize;
-		this.records = new LeitorArquivo(FILE_PATH_ARQUIVO_100K_REGISTROS).
-				getRows();
+		this.leitor = new LeitorArquivoV2(FILE_PATH_ARQUIVO_100K_REGISTROS);
 	}
 
 	@Parameters(name = "chunkSize = {0}")
@@ -103,7 +102,7 @@ public class TestPerformance {
 	public void testSalvar100KRegistros() throws FileNotFoundException, IOException, SQLException, ParseException {
 
 		db.setChunkSize(this.chunkSize);
-		db.salvar(this.records);
+		db.save(this.leitor);
 	}
 
 }

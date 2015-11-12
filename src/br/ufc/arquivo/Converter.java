@@ -1,11 +1,13 @@
 package br.ufc.arquivo;
 
-import br.ufc.arquivo.model.Pessoa;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-// XXX: iterator
+import br.ufc.arquivo.model.Pessoa;
+
+@Deprecated
+// XXX: convertendo no database 
 public class Converter {
 
 	private List<Object[]> rows;
@@ -14,7 +16,6 @@ public class Converter {
 	public Converter(List<Object[]> rows) {
 		
 		this.rows = rows;
-		
 	}
 	
 	public Pessoa nextPessoa() {

@@ -1,4 +1,4 @@
-package br.ufc.arquivo;
+package br.ufc.arquivo.model;
 
 public class TestPessoa {
 	

@@ -1,8 +1,6 @@
 package br.ufc.arquivo;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -22,7 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import br.ufc.arquivo.database.Database;
 import br.ufc.arquivo.model.Pessoa;
-import br.ufc.arquivo.reader.LeitorArquivo;
+import br.ufc.arquivo.reader.LeitorArquivoV2;
 
 @RunWith(Parameterized.class)
 public class TestIntegracao {
@@ -34,46 +32,43 @@ public class TestIntegracao {
 
 		List<Object[]> col = new LinkedList<>();
 
-		col.add(new Object[] {
-				"./resources/pessoas1_10000registros.csv",
-				new Object[] { "Abelardo 0", 20, "Analista de TI", null },
-				new Object[] { "Abelardo 9997", 97, "Analista de Marmotagem",
-						null } });
+		col.add(new Object[] { "./resources/pessoas1_10000registros.csv",
+				new Pessoa("Abelardo 0", 20, "Analista de TI", null),
+				new Pessoa("Abelardo 9997", 97, "Analista de Marmotagem", null) });
 
 		col.add(new Object[] {
 				"./resources/pessoas2_10000registros.csv",
-				new Object[] { "Abelardo 3", 23, "Analista de Nada",
-						sdf.parse("01/04/89") },
-				new Object[] { "Abelardo 9979", 79, "Analista de Nada",
-						sdf.parse("03/17/97") } });
+				new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
+						.parse("01/04/89")),
+				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
+						.parse("03/17/97")) });
 
 		col.add(new Object[] {
 				"./resources/pessoas3_10000registros.csv",
-				new Object[] { "Abelardo 3", 23, "Analista de Nada",
-						sdf.parse("01/04/89") },
-				new Object[] { "Abelardo 9979", 79, "Analista de Nada",
-						sdf.parse("03/17/97") } });
+				new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
+						.parse("01/04/89")),
+				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
+						.parse("03/17/97")) });
 
 		return col;
 	}
 
-	public TestIntegracao(String filePath, Object[] expectedFirstRegister,
-			Object[] expectedLastRegister) {
+	public TestIntegracao(String filePath, Pessoa expectedFirstPessoa,
+			Pessoa expectedLastPessoa) {
 
 		this.filePath = filePath;
-		this.expectedFirstRegister = expectedFirstRegister;
-		this.expectedLastRegister = expectedLastRegister;
+		this.expectedFirstPessoa = expectedFirstPessoa;
+		this.expectedLastPessoa = expectedLastPessoa;
 	}
 
 	private String filePath;
-	private Object[] expectedFirstRegister;
-	private Object[] expectedLastRegister;
+	private Pessoa expectedFirstPessoa;
+	private Pessoa expectedLastPessoa;
 
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/"
 			+ TestIntegracao.class.getName();
 
 	private static Database db;
-
 	private static Connection conn;
 
 	@BeforeClass
@@ -81,7 +76,7 @@ public class TestIntegracao {
 
 		conn = DriverManager.getConnection(PATH_DB);
 		db = new Database(conn);
-		db.criarTabela();
+		db.createTable();
 	}
 
 	@After
@@ -94,17 +89,19 @@ public class TestIntegracao {
 	public void lerArquivoESalvaNoBanco() throws IOException, SQLException,
 			ParseException {
 
-		List<String[]> records = new LeitorArquivo(filePath).getRows();
+		try (LeitorArquivoV2 leitor = new LeitorArquivoV2(filePath)) {
 
-		db.salvar(records);
+			db.save(leitor);
 
-		List<Object[]> all = db.all();
+			List<Pessoa> pessoas = db.all();
 
-		Object[] firstRow = all.get(0);
-		Object[] lastRow = all.get(all.size() - 1);
+			Pessoa firstPessoa = pessoas.get(0);
+			Pessoa lastPessoa = pessoas.get(pessoas.size() - 1);
 
-		assertArrayEquals(this.expectedFirstRegister, firstRow);
-		assertArrayEquals(this.expectedLastRegister, lastRow);
+			assertEquals(this.expectedFirstPessoa, firstPessoa);
+			assertEquals(this.expectedLastPessoa, lastPessoa);
+		}
+
 	}
 
 	@Test
@@ -117,37 +114,31 @@ public class TestIntegracao {
 
 		db.salvar(rows);
 
-		Converter converter = new Converter(db.all());
+		List<Pessoa> pessoas = db.all();
 
-		Pessoa pessoa1 = converter.nextPessoa();
-		Pessoa pessoa2 = converter.nextPessoa();
+		Pessoa pessoa1 = pessoas.get(0);
+		Pessoa pessoa2 = pessoas.get(1);
 
 		assertEquals(new Integer(23), pessoa1.getIdade());
 		assertEquals(new Integer(21), pessoa2.getIdade());
 
 	} // end testConverterIdade method
 
-	@Test
-	public void testGetIdadeNaoSetadaIgualANull() throws SQLException,
-			ParseException {
-
-		List<String[]> rows = new LinkedList<>();
-
-		rows.add(new String[] { "Joao", "23", "Analista" });
-
-		db.salvar(rows);
-
-		// qual a necessidade do código acima?
-		Pessoa pessoa = new Pessoa();
-
-		assertEquals(null, pessoa.getIdade());
-	} // end testGetIdadeNaoSetada method
-
-	@Test
-	public void testDatabaseAsIterator() {
-
-		fail();
-		
-	} 
+	// XXX:??????
+	// @Test
+	// public void testGetIdadeNaoSetadaIgualANull() throws SQLException,
+	// ParseException {
+	//
+	// List<String[]> rows = new LinkedList<>();
+	//
+	// rows.add(new String[] { "Joao", "23", "Analista" });
+	//
+	// db.salvar(rows);
+	//
+	// // qual a necessidade do código acima?
+	// Pessoa pessoa = new Pessoa();
+	//
+	// assertEquals(null, pessoa.getIdade());
+	// } // end testGetIdadeNaoSetada method
 
 }
