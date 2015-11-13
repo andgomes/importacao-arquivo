@@ -15,6 +15,8 @@ import java.util.List;
 
 import br.ufc.arquivo.model.Pessoa;
 
+// TODO: CPF será a chave da entidade
+// TODO: implementar método de update, recebendo um iterable<String[]> e atualizando os dados das entidades
 public class Database {
 
 	private int chunkSize = 1000;
@@ -53,12 +55,10 @@ public class Database {
 
 	public List<Pessoa> all() throws SQLException {
 
-		List<Pessoa> pessoas = null;
+		List<Pessoa> pessoas = new ArrayList<Pessoa>();
 
 		try (Statement stmt = this.conn.createStatement();
 				ResultSet rs = stmt.executeQuery(QUERY_SELECT_ALL)) {
-
-			pessoas = new ArrayList<Pessoa>();
 
 			while (rs.next()) {
 
@@ -151,80 +151,6 @@ public class Database {
 
 		}
 
-	}
-
-	// esperada list de String[] com length igual a x
-	// de forma que será criado registro na tabela preenchendo as x primeiras
-	// colunas
-	// ficando as demais com valor null
-	@Deprecated
-	public void salvar(List<String[]> data) throws SQLException, ParseException {
-
-		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
-
-			try {
-
-				conn.setAutoCommit(false);
-
-				int batchSize = 0;
-
-				for (String[] dataRow : data) {
-
-					String[] dataRowCompleted = Arrays.copyOf(dataRow,
-							NUMBER_COLUMNS_DATABASE);
-
-					// nome
-					pstmt.setString(1, dataRowCompleted[0]);
-					// idade
-					if (dataRowCompleted[1] == null
-							|| dataRowCompleted[1].isEmpty()) {
-						pstmt.setNull(2, Types.INTEGER);
-					} else {
-						pstmt.setInt(2, Integer.parseInt(dataRowCompleted[1]));
-					}
-					// endereço
-					pstmt.setString(3, dataRowCompleted[2]);
-					// data de nascimento
-					if (dataRowCompleted[3] == null) {
-						pstmt.setNull(4, Types.DATE);
-					} else {
-						pstmt.setDate(4, new Date(sdf
-								.parse(dataRowCompleted[3]).getTime()));
-					}
-					
-					if (dataRowCompleted[4] == null) {
-						pstmt.setNull(5, Types.BIGINT);
-					} else {
-						pstmt.setLong(5, Long.parseLong(dataRowCompleted[4]));
-					}
-
-					pstmt.addBatch();
-					batchSize++;
-
-					if (batchSize == this.chunkSize) {
-
-						pstmt.executeBatch();
-						batchSize = 0;
-					}
-				}
-
-				if (batchSize > 0) { // necessário, pois o driver do hsqldb
-										// lança exceção caso seja chamado
-					// executeBatch sem nenhum addBatch antes
-
-					pstmt.executeBatch();
-				}
-
-				conn.commit();
-
-				conn.setAutoCommit(true);
-			} catch (SQLException e) {
-
-				conn.rollback();
-				throw e;
-			}
-
-		}
 	}
 
 	public int size() throws SQLException {

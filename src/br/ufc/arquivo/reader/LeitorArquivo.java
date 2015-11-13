@@ -11,8 +11,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-//TODO: pessoas4 -> adicionada coluna CPF(fake - n achei fonte de 10k cpfs válidos)
-//descobrir o padrão, realizar a leitura e validação
+//TODO: validar coluna CPF
 //TODO: ver http://stackoverflow.com/questions/839178/why-is-javas-iterator-not-an-iterable
 public class LeitorArquivo implements Iterable<String[]>, Closeable {
 
@@ -85,4 +84,4 @@ public class LeitorArquivo implements Iterable<String[]>, Closeable {
 		this.reader.close();
 	}
 
-} // end LeitorArquivo class
+}

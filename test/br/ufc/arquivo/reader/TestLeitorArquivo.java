@@ -8,8 +8,6 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import br.ufc.arquivo.reader.LeitorArquivo;
-
 // TODO: pode se tornar parametrizado
 public class TestLeitorArquivo {
 
@@ -91,42 +89,10 @@ public class TestLeitorArquivo {
 	public void leitorArquivoDeveSerCloseableEIterable() {
 
 		try (LeitorArquivo l = new LeitorArquivo(FILEPATH_PESSOAS1)) {
-			for (String[] record : l) {
+			for (String[] record: l) {
 			}
 		} catch (IOException e) {
 		}
 	}
-
-	// iterable, não iterator
-	// @Test
-	// public void testLeitorArquivoAsIterator() throws IOException {
-	//
-	// LeitorArquivo leitorArquivo =
-	// new LeitorArquivo("./resources/pessoas_sub.csv");
-	//
-	// String[] row0 = null;
-	//
-	// if (leitorArquivo.hasNext()) {
-	// row0 = leitorArquivo.next();
-	// }
-	//
-	// assertEquals("Abelardo 0", row0[0]);
-	// assertEquals("Analista de TI", row0[2]);
-	//
-	// }
-	//
-	// @Test(expected=NoSuchElementException.class)
-	// public void testNextInEmptyIterator() throws IOException {
-	//
-	// LeitorArquivo leitorArquivo =
-	// new LeitorArquivo("./resources/pessoas_sub.csv");
-	//
-	// for (int i = 1; i <= leitorArquivo.size(); i++) {
-	// leitorArquivo.next();
-	// }
-	//
-	// leitorArquivo.next();
-	//
-	// }
 
 }

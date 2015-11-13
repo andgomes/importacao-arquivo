@@ -25,22 +25,22 @@ public class TestConnection {
 	public void testSelectReturnsValueNotCommitedInSameConnection()
 			throws SQLException {
 
-		Connection conn1 = DriverManager.getConnection(PATH_DB);
+		Connection conn = DriverManager.getConnection(PATH_DB);
 
-		Statement stmt1 = conn1.createStatement();
+		Statement stmt = conn.createStatement();
 
-		conn1.setAutoCommit(false);
+		conn.setAutoCommit(false);
 
-		stmt1.execute("CREATE TABLE foo (id INTEGER)");
-		stmt1.execute("INSERT INTO foo (id) VALUES (1)");
-		ResultSet rs1 = stmt1.executeQuery("SELECT count(*) FROM foo");
-		rs1.next();
+		stmt.execute("CREATE TABLE foo (id INTEGER)");
+		stmt.execute("INSERT INTO foo (id) VALUES (1)");
+		ResultSet rs = stmt.executeQuery("SELECT count(*) FROM foo");
+		rs.next();
 
-		assertEquals(1, rs1.getInt(1));
+		assertEquals(1, rs.getInt(1));
 
-		rs1.close();
-		stmt1.close();
-		conn1.close();
-	} // end testSelectInTransactionNotCommited method
+		rs.close();
+		stmt.close();
+		conn.close();
+	} 
 
-} // end TestConnection class
+}

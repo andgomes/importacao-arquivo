@@ -51,13 +51,13 @@ public class TestIntegracao {
 						.parse("01/04/89"), null),
 				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
 						.parse("03/17/97"), null) });
-		//
-		// col.add(new Object[] {
-		// "./resources/pessoas4_10000registros.csv",
-		// new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
-		// .parse("01/04/89"), 27900),
-		// new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
-		// .parse("03/17/97"), 1002802620789) });
+
+		col.add(new Object[] {
+				"./resources/pessoas4_10000registros.csv",
+				new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
+						.parse("01/04/89"), 27900l),
+				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
+						.parse("03/17/97"), 1002802620789l) });
 
 		return col;
 	}
@@ -95,7 +95,7 @@ public class TestIntegracao {
 	}
 
 	@Test
-	public void lerArquivoESalvaNoBanco() throws IOException, SQLException,
+	public void lerArquivoESalvarNoBanco() throws IOException, SQLException,
 			ParseException {
 
 		try (LeitorArquivo leitor = new LeitorArquivo(filePath)) {
@@ -121,7 +121,7 @@ public class TestIntegracao {
 		rows.add(new String[] { "Joao 1", "23", "Analista" });
 		rows.add(new String[] { "Joao 2", "21", "Programador" });
 
-		db.salvar(rows);
+		db.save(rows);
 
 		List<Pessoa> pessoas = db.all();
 
@@ -131,23 +131,6 @@ public class TestIntegracao {
 		assertEquals(new Integer(23), pessoa1.getIdade());
 		assertEquals(new Integer(21), pessoa2.getIdade());
 
-	} // end testConverterIdade method
-
-	// XXX:??????
-	// @Test
-	// public void testGetIdadeNaoSetadaIgualANull() throws SQLException,
-	// ParseException {
-	//
-	// List<String[]> rows = new LinkedList<>();
-	//
-	// rows.add(new String[] { "Joao", "23", "Analista" });
-	//
-	// db.salvar(rows);
-	//
-	// // qual a necessidade do código acima?
-	// Pessoa pessoa = new Pessoa();
-	//
-	// assertEquals(null, pessoa.getIdade());
-	// } // end testGetIdadeNaoSetada method
+	}
 
 }

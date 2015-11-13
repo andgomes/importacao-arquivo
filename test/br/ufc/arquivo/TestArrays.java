@@ -12,7 +12,6 @@ public class TestArrays {
 	public void copyOfRangeParametroToSignificaAPosicaoDoUltimoElemento() {
 		
 		String[] nomes = {"ab", "ju", "del"};
-		
 		String[] nomesCopy = Arrays.copyOfRange(nomes, 0, nomes.length);
 		
 		assertArrayEquals(nomes, nomesCopy);

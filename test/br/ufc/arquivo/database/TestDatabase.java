@@ -87,7 +87,7 @@ public class TestDatabase {
 		assertEquals(
 				dataRowCompleted[4] == null ? null
 						: Long.parseLong(dataRowCompleted[4]),
-						firstPessoa.getCpf());
+				firstPessoa.getCpf());
 	}
 
 	@Test
@@ -164,8 +164,8 @@ public class TestDatabase {
 		assertEquals(0, db.size());
 	} // end testRegistroCorrompido method
 
-	@Test(timeout = 2000)
-	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2SegundosV2()
+	@Test(timeout = 1500)
+	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe1SegundoEMeio()
 			throws SQLException, FileNotFoundException, IOException,
 			ParseException {
 
@@ -177,8 +177,8 @@ public class TestDatabase {
 		assertEquals(100000, db.size());
 	} // end testSalvarArquivo method
 
-	@Test(expected = IllegalArgumentException.class, timeout = 1000)
-	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe1SegundoV2()
+	@Test(expected = IllegalArgumentException.class, timeout = 200)
+	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe200MilesimosDeSegundo()
 			throws FileNotFoundException, IOException, SQLException,
 			ParseException {
 

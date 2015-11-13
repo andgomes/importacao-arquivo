@@ -10,26 +10,6 @@ public class Pessoa {
 	private Date dataNascimento;
 	private Long cpf;
 
-	// XXX: prefiro deixar um construtor só, com o máximo de parâmetros, ficando
-	// responsabilidade de quem for utilizar especificar quais serão null
-	// e tu criou esses construtores sem sequer ter
-	// necessidade!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// código só quando há a necessidade!!!!!!!!!
-	// public Pessoa() {
-	// this(null, null, null, null);
-	// }
-	// public Pessoa(String nome) {
-	// this(nome, null, null, null);
-	// }
-	//
-	// public Pessoa(String nome, Integer idade) {
-	// this(nome, idade, null, null);
-	// }
-	//
-	// public Pessoa(String nome, Integer idade, String cargo) {
-	// this(nome, idade, cargo, null);
-	// }
-
 	public Pessoa(String nome, Integer idade, String cargo, Date nascimento, Long cpf) {
 
 		this.setNome(nome);
@@ -81,6 +61,7 @@ public class Pessoa {
 	}
 	
 	// hashCode & equals -- gerado pelo eclipse
+	// TODO: java 8 tem forma melhor? pesquisar
 
 	@Override
 	public int hashCode() {
