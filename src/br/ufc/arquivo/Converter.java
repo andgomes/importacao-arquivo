@@ -47,7 +47,7 @@ public class Converter {
 		
 		++next;
 		
-		return new Pessoa(nome, idade, cargo, nascimento);
+		return new Pessoa(nome, idade, cargo, nascimento, null);
 		
 	}
 	

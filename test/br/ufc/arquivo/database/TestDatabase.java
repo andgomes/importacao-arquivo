@@ -20,7 +20,6 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import br.ufc.arquivo.database.Database;
 import br.ufc.arquivo.model.Pessoa;
 import br.ufc.arquivo.reader.LeitorArquivo;
 import br.ufc.arquivo.reader.LeitorArquivoV2;
@@ -64,7 +63,7 @@ public class TestDatabase {
 		data.add(dataRow);
 
 		// exercise
-		db.salvar(data);
+		db.save(data);
 
 		// verify
 		List<Pessoa> pessoas = db.all();
@@ -74,7 +73,7 @@ public class TestDatabase {
 
 		Pessoa firstPessoa = pessoas.get(0);
 
-		String[] dataRowCompleted = Arrays.copyOf(dataRow, 4);
+		String[] dataRowCompleted = Arrays.copyOf(dataRow, 5);
 
 		assertEquals(dataRowCompleted[0], firstPessoa.getNome());
 		assertEquals(
@@ -86,6 +85,10 @@ public class TestDatabase {
 				dataRowCompleted[3] == null ? null
 						: sdf.parse(dataRowCompleted[3]),
 				firstPessoa.getDataNascimento());
+		assertEquals(
+				dataRowCompleted[4] == null ? null
+						: Long.parseLong(dataRowCompleted[4]),
+						firstPessoa.getCpf());
 	}
 
 	@Test
@@ -111,17 +114,26 @@ public class TestDatabase {
 		testSalvarRegistro(dataRow);
 	}
 
+	@Test
+	public void testSalvarRegistroCom5Colunas() throws SQLException,
+			ParseException {
+
+		String[] dataRow = { "Joao", "32", "Analista", "29/11/1970",
+				"988444802133" };
+		testSalvarRegistro(dataRow);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void seIdadeNaoIntegerEntaoLancaIllegalArgumentException()
 			throws SQLException, ParseException {
 
 		String[] dataRow = { "Aderbaldo", "NaoSouInteger", "Professor" };
 
-		ArrayList<String[]> data = new ArrayList<String[]>(1);
+		List<String[]> data = new ArrayList<String[]>(1);
 		data.add(dataRow);
 
 		// exercise
-		db.salvar(data);
+		db.save(data);
 	}
 
 	/**
@@ -148,7 +160,7 @@ public class TestDatabase {
 
 		db.setChunkSize(1);
 
-		db.salvar(registros);
+		db.save(registros);
 
 		assertEquals(0, db.size());
 	} // end testRegistroCorrompido method
@@ -209,11 +221,11 @@ public class TestDatabase {
 
 		String[] dataRow = { "oi", "", "fala?" };
 
-		ArrayList<String[]> data = new ArrayList<String[]>(1);
+		List<String[]> data = new ArrayList<String[]>(1);
 		data.add(dataRow);
 
 		// exercise
-		db.salvar(data);
+		db.save(data);
 
 		Pessoa firstPessoa = db.all().get(0);
 

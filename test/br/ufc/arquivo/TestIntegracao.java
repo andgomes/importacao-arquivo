@@ -32,23 +32,32 @@ public class TestIntegracao {
 
 		List<Object[]> col = new LinkedList<>();
 
-		col.add(new Object[] { "./resources/pessoas1_10000registros.csv",
-				new Pessoa("Abelardo 0", 20, "Analista de TI", null),
-				new Pessoa("Abelardo 9997", 97, "Analista de Marmotagem", null) });
+		col.add(new Object[] {
+				"./resources/pessoas1_10000registros.csv",
+				new Pessoa("Abelardo 0", 20, "Analista de TI", null, null),
+				new Pessoa("Abelardo 9997", 97, "Analista de Marmotagem", null,
+						null) });
 
 		col.add(new Object[] {
 				"./resources/pessoas2_10000registros.csv",
 				new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
-						.parse("01/04/89")),
+						.parse("01/04/89"), null),
 				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
-						.parse("03/17/97")) });
+						.parse("03/17/97"), null) });
 
 		col.add(new Object[] {
 				"./resources/pessoas3_10000registros.csv",
 				new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
-						.parse("01/04/89")),
+						.parse("01/04/89"), null),
 				new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
-						.parse("03/17/97")) });
+						.parse("03/17/97"), null) });
+		//
+		// col.add(new Object[] {
+		// "./resources/pessoas4_10000registros.csv",
+		// new Pessoa("Abelardo 3", 23, "Analista de Nada", sdf
+		// .parse("01/04/89"), 27900),
+		// new Pessoa("Abelardo 9979", 79, "Analista de Nada", sdf
+		// .parse("03/17/97"), 1002802620789) });
 
 		return col;
 	}

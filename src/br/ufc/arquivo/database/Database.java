@@ -18,12 +18,12 @@ import br.ufc.arquivo.model.Pessoa;
 public class Database {
 
 	private int chunkSize = 1000;
-	private static final int NUMBER_COLUMNS_DATABASE = 4;
+	private static final int NUMBER_COLUMNS_DATABASE = 5;
 	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), "
-			+ "idade integer, profissão varchar(50), data_nascimento date)";
-	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?);";
+			+ "idade integer, profissão varchar(50), data_nascimento date, cpf bigint)";
+	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?, ?);";
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
 	private static final String QUERY_DELETE_ALL = "delete from pessoa";
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
@@ -69,8 +69,12 @@ public class Database {
 				}
 				String cargo = rs.getString(3);
 				Date dataNascimento = rs.getDate(4);
+				Long cpf = rs.getLong(5);
+				if(rs.wasNull()) {
+					cpf = null;
+				}
 
-				pessoas.add(new Pessoa(nome, idade, cargo, dataNascimento));
+				pessoas.add(new Pessoa(nome, idade, cargo, dataNascimento, cpf));
 			}
 		}
 
@@ -111,6 +115,12 @@ public class Database {
 					} else {
 						pstmt.setDate(4, new Date(sdf
 								.parse(dataRowCompleted[3]).getTime()));
+					}
+
+					if (dataRowCompleted[4] == null) {
+						pstmt.setNull(5, Types.BIGINT);
+					} else {
+						pstmt.setLong(5, Long.parseLong(dataRowCompleted[4]));
 					}
 
 					pstmt.addBatch();
@@ -180,6 +190,12 @@ public class Database {
 					} else {
 						pstmt.setDate(4, new Date(sdf
 								.parse(dataRowCompleted[3]).getTime()));
+					}
+					
+					if (dataRowCompleted[4] == null) {
+						pstmt.setNull(5, Types.BIGINT);
+					} else {
+						pstmt.setLong(5, Long.parseLong(dataRowCompleted[4]));
 					}
 
 					pstmt.addBatch();

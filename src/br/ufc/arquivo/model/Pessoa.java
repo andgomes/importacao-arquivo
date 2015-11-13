@@ -8,6 +8,7 @@ public class Pessoa {
 	private Integer idade;
 	private String cargo;
 	private Date dataNascimento;
+	private Long cpf;
 
 	// XXX: prefiro deixar um construtor só, com o máximo de parâmetros, ficando
 	// responsabilidade de quem for utilizar especificar quais serão null
@@ -29,12 +30,13 @@ public class Pessoa {
 	// this(nome, idade, cargo, null);
 	// }
 
-	public Pessoa(String nome, Integer idade, String cargo, Date nascimento) {
+	public Pessoa(String nome, Integer idade, String cargo, Date nascimento, Long cpf) {
 
 		this.setNome(nome);
 		this.setIdade(idade);
 		this.setCargo(cargo);
 		this.setDataNascimento(nascimento);
+		this.setCpf(cpf);
 	}
 
 	public String getCargo() {
@@ -69,13 +71,23 @@ public class Pessoa {
 		this.idade = idade;
 	}
 
+
+	public Long getCpf() {
+		return cpf;
+	}
+
+	public void setCpf(Long cpf) {
+		this.cpf = cpf;
+	}
+	
 	// hashCode & equals -- gerado pelo eclipse
+
 	@Override
 	public int hashCode() {
-
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((cargo == null) ? 0 : cargo.hashCode());
+		result = prime * result + ((cpf == null) ? 0 : cpf.hashCode());
 		result = prime * result
 				+ ((dataNascimento == null) ? 0 : dataNascimento.hashCode());
 		result = prime * result + ((idade == null) ? 0 : idade.hashCode());
@@ -97,6 +109,11 @@ public class Pessoa {
 				return false;
 		} else if (!cargo.equals(other.cargo))
 			return false;
+		if (cpf == null) {
+			if (other.cpf != null)
+				return false;
+		} else if (!cpf.equals(other.cpf))
+			return false;
 		if (dataNascimento == null) {
 			if (other.dataNascimento != null)
 				return false;
@@ -114,5 +131,6 @@ public class Pessoa {
 			return false;
 		return true;
 	}
+	
 
 }
