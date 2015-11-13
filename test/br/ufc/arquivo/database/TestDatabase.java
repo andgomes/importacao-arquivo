@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import br.ufc.arquivo.model.Pessoa;
 import br.ufc.arquivo.reader.LeitorArquivo;
-import br.ufc.arquivo.reader.LeitorArquivoV2;
 
 public class TestDatabase {
 
@@ -165,27 +164,12 @@ public class TestDatabase {
 		assertEquals(0, db.size());
 	} // end testRegistroCorrompido method
 
-	// XXX: diferença de performances entre LeitorArquivo e LeitorArquivoV2,
-	// principalmente no segundo test(primeiro registro corrompido)
-	@Test(timeout = 2000)
-	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2Segundos()
-			throws SQLException, FileNotFoundException, IOException,
-			ParseException {
-
-		List<String[]> records = new LeitorArquivo(
-				FILE_PATH_ARQUIVO_100K_REGISTROS).getRows();
-
-		db.salvar(records);
-
-		assertEquals(100000, db.size());
-	} // end testSalvarArquivo method
-
 	@Test(timeout = 2000)
 	public void seArquivoCom100KRegistrosEntaoSalvarEmMenosDe2SegundosV2()
 			throws SQLException, FileNotFoundException, IOException,
 			ParseException {
 
-		LeitorArquivoV2 leitor = new LeitorArquivoV2(
+		LeitorArquivo leitor = new LeitorArquivo(
 				FILE_PATH_ARQUIVO_100K_REGISTROS);
 
 		db.save(leitor);
@@ -194,22 +178,11 @@ public class TestDatabase {
 	} // end testSalvarArquivo method
 
 	@Test(expected = IllegalArgumentException.class, timeout = 1000)
-	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe1Segundo()
-			throws FileNotFoundException, IOException, SQLException,
-			ParseException {
-
-		List<String[]> records = new LeitorArquivo(
-				FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA).getRows();
-
-		db.salvar(records);
-	}
-
-	@Test(expected = IllegalArgumentException.class, timeout = 1000)
 	public void seArquivoCom100KRegistrosEComRegistroCorrompidoNaPrimeiraLinhaEntaoLancaExceptionEmMenosDe1SegundoV2()
 			throws FileNotFoundException, IOException, SQLException,
 			ParseException {
 
-		LeitorArquivoV2 leitor = new LeitorArquivoV2(
+		LeitorArquivo leitor = new LeitorArquivo(
 				FILE_PATH_ARQUIVO_100K_REGISTROS_LINHA_1_CORROMPIDA);
 
 		db.save(leitor);

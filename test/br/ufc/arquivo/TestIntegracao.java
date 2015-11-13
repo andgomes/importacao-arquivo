@@ -20,7 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import br.ufc.arquivo.database.Database;
 import br.ufc.arquivo.model.Pessoa;
-import br.ufc.arquivo.reader.LeitorArquivoV2;
+import br.ufc.arquivo.reader.LeitorArquivo;
 
 @RunWith(Parameterized.class)
 public class TestIntegracao {
@@ -98,7 +98,7 @@ public class TestIntegracao {
 	public void lerArquivoESalvaNoBanco() throws IOException, SQLException,
 			ParseException {
 
-		try (LeitorArquivoV2 leitor = new LeitorArquivoV2(filePath)) {
+		try (LeitorArquivo leitor = new LeitorArquivo(filePath)) {
 
 			db.save(leitor);
 

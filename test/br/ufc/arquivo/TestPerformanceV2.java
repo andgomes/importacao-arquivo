@@ -19,7 +19,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import br.ufc.arquivo.database.Database;
-import br.ufc.arquivo.reader.LeitorArquivoV2;
+import br.ufc.arquivo.reader.LeitorArquivo;
 
 // 7.73
 @Ignore
@@ -37,12 +37,12 @@ public class TestPerformanceV2 {
 
 	private int chunkSize;
 	
-	private LeitorArquivoV2 leitor;
+	private LeitorArquivo leitor;
 	
 	public TestPerformanceV2(int chunkSize) throws FileNotFoundException, IOException {
 
 		this.chunkSize = chunkSize;
-		this.leitor = new LeitorArquivoV2(FILE_PATH_ARQUIVO_100K_REGISTROS);
+		this.leitor = new LeitorArquivo(FILE_PATH_ARQUIVO_100K_REGISTROS);
 	}
 
 	@Parameters(name = "chunkSize = {0}")

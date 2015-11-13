@@ -3,15 +3,17 @@ package br.ufc.arquivo.reader;
 import java.io.Closeable;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-@Deprecated
+//TODO: pessoas4 -> adicionada coluna CPF(fake - n achei fonte de 10k cpfs válidos)
+//descobrir o padrão, realizar a leitura e validação
+//TODO: ver http://stackoverflow.com/questions/839178/why-is-javas-iterator-not-an-iterable
 public class LeitorArquivo implements Iterable<String[]>, Closeable {
 
 	private static final char FILE_SEPARATOR = ';';
@@ -19,58 +21,68 @@ public class LeitorArquivo implements Iterable<String[]>, Closeable {
 	private static final CSVFormat FILE_FORMAT = CSVFormat
 			.newFormat(FILE_SEPARATOR).withHeader().withQuote(FILE_QUOTE_CHAR);
 
-	private List<String[]> rows = new LinkedList<>();
-	
+	private CSVParser parser;
+	private FileReader reader;
+	private List<String[]> rows;
+
 	public LeitorArquivo(String filePath) throws IOException {
 
-		try (FileReader reader = new FileReader(filePath);
-				CSVParser parser = new CSVParser(reader, FILE_FORMAT)) {
-
-			int nCols = parser.getHeaderMap().keySet().size();
-
-			// XXX: isso não é iterator - está percorrendo todos os registros do
-			// leitor, carregando num array e retornando o iterator do array
-			for (CSVRecord record : parser) {
-
-				String[] recordAsStringArray = record.toMap().values()
-						.toArray(new String[nCols]);
-
-				rows.add(recordAsStringArray);
-			}
-		}
+		this.reader = new FileReader(filePath);
+		this.parser = new CSVParser(reader, FILE_FORMAT);
 	}
 
-	/*
-	 * XXX: método para os testes anteriores que utilizavam a lista das linhas
-	 * diretamente passarem mais fácil
-	 */
 	public List<String[]> getRows() {
 
-		return rows;
+		if (this.rows == null) {
+
+			this.rows = new ArrayList<String[]>();
+
+			for (String[] row : this) {
+
+				this.rows.add(row);
+			}
+		}
+
+		return this.rows;
 	}
 
 	@Override
 	public Iterator<String[]> iterator() {
 
-		return this.rows.iterator();
+		int nCols = this.parser.getHeaderMap().keySet().size();
+
+		return new LeitorArquivoIterator(this.parser.iterator(), nCols);
 	}
-	
+
 	private class LeitorArquivoIterator implements Iterator<String[]> {
+
+		private Iterator<CSVRecord> csvRecords;
+		private int nCols;
+
+		public LeitorArquivoIterator(Iterator<CSVRecord> csvRecords, int nCols) {
+
+			this.csvRecords = csvRecords;
+		}
 
 		@Override
 		public boolean hasNext() {
-			return false;
+
+			return this.csvRecords.hasNext();
 		}
 
 		@Override
 		public String[] next() {
-			return null;
+			CSVRecord record = this.csvRecords.next();
+
+			return record.toMap().values().toArray(new String[this.nCols]);
 		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		
+
+		this.parser.close();
+		this.reader.close();
 	}
 
 } // end LeitorArquivo class

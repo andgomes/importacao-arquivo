@@ -8,11 +8,11 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import br.ufc.arquivo.reader.LeitorArquivoV2;
+import br.ufc.arquivo.reader.LeitorArquivo;
 
 public class TestLeitorArquivo {
 
-	private static LeitorArquivoV2 leitorArquivo1;
+	private static LeitorArquivo leitorArquivo1;
 	private static final int FILE_SIZE_PESSOAS1 = 10000;
 	private static final String[] FILE_PESSOAS1_PRIMEIRA_LINHA = {
 			"Abelardo 0", "20", "Analista de TI" };
@@ -20,7 +20,7 @@ public class TestLeitorArquivo {
 			"Abelardo 9997", "97", "Analista de Marmotagem" };
 	private static final String FILEPATH_PESSOAS1 = "./resources/pessoas1_10000registros.csv";
 
-	private static LeitorArquivoV2 leitorArquivo2;
+	private static LeitorArquivo leitorArquivo2;
 	private static final int FILE_SIZE_PESSOAS2 = 9980;
 	private static final String[] FILE_PESSOAS2_PRIMEIRA_LINHA = {
 			"Abelardo 3", "23", "Analista de Nada", "01/04/89" };
@@ -28,7 +28,7 @@ public class TestLeitorArquivo {
 			"Abelardo 9979", "79", "Analista de Nada", "03/17/97" };
 	private static final String FILEPATH_PESSOAS2 = "./resources/pessoas2_10000registros.csv";
 
-	private static LeitorArquivoV2 leitorArquivo3;
+	private static LeitorArquivo leitorArquivo3;
 	private static final int FILE_SIZE_PESSOAS3 = 9980;
 	private static final String[] FILE_PESSOAS3_PRIMEIRA_LINHA = {
 			"Abelardo 3", "23", "Analista de Nada", "01/04/89" };
@@ -39,9 +39,9 @@ public class TestLeitorArquivo {
 	@BeforeClass
 	public static void setUp() throws IOException {
 
-		leitorArquivo1 = new LeitorArquivoV2(FILEPATH_PESSOAS1);
-		leitorArquivo2 = new LeitorArquivoV2(FILEPATH_PESSOAS2);
-		leitorArquivo3 = new LeitorArquivoV2(FILEPATH_PESSOAS3);
+		leitorArquivo1 = new LeitorArquivo(FILEPATH_PESSOAS1);
+		leitorArquivo2 = new LeitorArquivo(FILEPATH_PESSOAS2);
+		leitorArquivo3 = new LeitorArquivo(FILEPATH_PESSOAS3);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class TestLeitorArquivo {
 	@Test
 	public void leitorArquivoDeveSerCloseableEIterable() {
 
-		try (LeitorArquivoV2 l = new LeitorArquivoV2(FILEPATH_PESSOAS1)) {
+		try (LeitorArquivo l = new LeitorArquivo(FILEPATH_PESSOAS1)) {
 			for (String[] record : l) {
 			}
 		} catch (IOException e) {
