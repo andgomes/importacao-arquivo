@@ -24,10 +24,10 @@ import br.ufc.arquivo.reader.LeitorArquivo;
 // 7.73
 @Ignore
 @RunWith(Parameterized.class)
-public class TestPerformanceV2 {
+public class TestPerformance {
 
 	private static final String PATH_DB = "jdbc:hsqldb:mem:/"
-			+ TestPerformanceV2.class.getName();
+			+ TestPerformance.class.getName();
 
 	private static final String FILE_PATH_ARQUIVO_100K_REGISTROS = "./resources/pessoas.csv";
 
@@ -39,7 +39,7 @@ public class TestPerformanceV2 {
 	
 	private LeitorArquivo leitor;
 	
-	public TestPerformanceV2(int chunkSize) throws FileNotFoundException, IOException {
+	public TestPerformance(int chunkSize) throws FileNotFoundException, IOException {
 
 		this.chunkSize = chunkSize;
 		this.leitor = new LeitorArquivo(FILE_PATH_ARQUIVO_100K_REGISTROS);
