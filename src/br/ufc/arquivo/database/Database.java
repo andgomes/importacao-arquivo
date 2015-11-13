@@ -82,6 +82,7 @@ public class Database {
 
 	}
 
+	//TODO: receber iterable de pessoa
 	public void save(Iterable<String[]> data) throws SQLException,
 			ParseException {
 
@@ -120,6 +121,7 @@ public class Database {
 					if (dataRowCompleted[4] == null) {
 						pstmt.setNull(5, Types.BIGINT);
 					} else {
+						
 						pstmt.setLong(5, Long.parseLong(dataRowCompleted[4]));
 					}
 

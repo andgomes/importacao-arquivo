@@ -23,11 +23,13 @@ public class LeitorArquivo implements Iterable<String[]>, Closeable {
 	private CSVParser parser;
 	private FileReader reader;
 	private List<String[]> rows;
+	private int nCols;
 
 	public LeitorArquivo(String filePath) throws IOException {
 
 		this.reader = new FileReader(filePath);
 		this.parser = new CSVParser(reader, FILE_FORMAT);
+		this.nCols = this.parser.getHeaderMap().keySet().size();
 	}
 
 	public List<String[]> getRows() {
@@ -47,10 +49,8 @@ public class LeitorArquivo implements Iterable<String[]>, Closeable {
 
 	@Override
 	public Iterator<String[]> iterator() {
-
-		int nCols = this.parser.getHeaderMap().keySet().size();
-
-		return new LeitorArquivoIterator(this.parser.iterator(), nCols);
+		
+		return new LeitorArquivoIterator(this.parser.iterator(), this.nCols);
 	}
 
 	private class LeitorArquivoIterator implements Iterator<String[]> {

@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -114,23 +115,22 @@ public class TestIntegracao {
 	}
 
 	@Test
-	public void testConverterIdade() throws SQLException, ParseException {
-
-		List<String[]> rows = new LinkedList<>();
-
-		rows.add(new String[] { "Joao 1", "23", "Analista" });
-		rows.add(new String[] { "Joao 2", "21", "Programador" });
-
-		db.save(rows);
-
+	public void testLeitorArquivoComoIterableDePessoa() throws SQLException, ParseException, IOException {
+		
+		LeitorArquivo leitor = new LeitorArquivo(filePath);
+		
+		Iterator<String[]> iterPessoa =  leitor.iterator();
+		
+		db.save(leitor);
+		
 		List<Pessoa> pessoas = db.all();
-
-		Pessoa pessoa1 = pessoas.get(0);
-		Pessoa pessoa2 = pessoas.get(1);
-
-		assertEquals(new Integer(23), pessoa1.getIdade());
-		assertEquals(new Integer(21), pessoa2.getIdade());
-
+		
+		Pessoa firstPessoa = pessoas.get(0);
+		Pessoa lastPessoa = pessoas.get(pessoas.size() - 1);
+		
+		assertEquals(this.expectedFirstPessoa, firstPessoa);
+		assertEquals(this.expectedLastPessoa, lastPessoa);
+		
 	}
-
+	
 }

@@ -85,14 +85,4 @@ public class TestLeitorArquivo {
 				.get(leitorArquivo4.getRows().size() - 1));
 	}
 
-	@Test
-	public void leitorArquivoDeveSerCloseableEIterable() {
-
-		try (LeitorArquivo l = new LeitorArquivo(FILEPATH_PESSOAS1)) {
-			for (String[] record: l) {
-			}
-		} catch (IOException e) {
-		}
-	}
-
 }
