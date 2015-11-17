@@ -1,88 +1,84 @@
 package br.ufc.arquivo.reader;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-// TODO: pode se tornar parametrizado
+import br.ufc.arquivo.model.Pessoa;
+
+@RunWith(Parameterized.class)
 public class TestLeitorArquivo {
 
-	private static LeitorArquivo leitorArquivo1;
-	private static final int FILE_SIZE_PESSOAS1 = 10000;
-	private static final String[] FILE_PESSOAS1_PRIMEIRA_LINHA = {
-			"Abelardo 0", "20", "Analista de TI" };
-	private static final String[] FILE_PESSOAS1_ULTIMA_LINHA = {
-			"Abelardo 9997", "97", "Analista de Marmotagem" };
-	private static final String FILEPATH_PESSOAS1 = "./resources/pessoas1_10000registros.csv";
+	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy");
 
-	private static LeitorArquivo leitorArquivo2;
-	private static final int FILE_SIZE_PESSOAS2 = 9980;
-	private static final String[] FILE_PESSOAS2_PRIMEIRA_LINHA = {
-			"Abelardo 3", "23", "Analista de Nada", "01/04/89" };
-	private static final String[] FILE_PESSOAS2_ULTIMA_LINHA = {
-			"Abelardo 9979", "79", "Analista de Nada", "03/17/97" };
-	private static final String FILEPATH_PESSOAS2 = "./resources/pessoas2_10000registros.csv";
+	private LeitorArquivo leitorArquivo;
+	private int numRows;
+	private Pessoa firstPessoa;
+	private Pessoa lastPessoa;
 
-	private static LeitorArquivo leitorArquivo3;
-	private static final int FILE_SIZE_PESSOAS3 = 9980;
-	private static final String[] FILE_PESSOAS3_PRIMEIRA_LINHA = {
-			"Abelardo 3", "23", "Analista de Nada", "01/04/89" };
-	private static final String[] FILE_PESSOAS3_ULTIMA_LINHA = {
-			"Abelardo 9979", "79", "Analista de Nada", "03/17/97" };
-	private static final String FILEPATH_PESSOAS3 = "./resources/pessoas3_10000registros.csv";
+	public TestLeitorArquivo(String filepath, int numRows, Pessoa firstPessoa,
+			Pessoa lastPessoa) throws IOException {
 
-	private static LeitorArquivo leitorArquivo4;
-	private static final int FILE_SIZE_PESSOAS4 = 9980;
-	private static final String[] FILE_PESSOAS4_PRIMEIRA_LINHA = {
-			"Abelardo 3", "23", "Analista de Nada", "01/04/89", "27900" };
-	private static final String[] FILE_PESSOAS4_ULTIMA_LINHA = {
-			"Abelardo 9979", "79", "Analista de Nada", "03/17/97", "1002802620789" };
-	private static final String FILEPATH_PESSOAS4 = "./resources/pessoas4_10000registros.csv";
+		this.leitorArquivo = new LeitorArquivo(filepath);
+		this.numRows = numRows;
+		this.firstPessoa = firstPessoa;
+		this.lastPessoa = lastPessoa;
+	}
 
-	@BeforeClass
-	public static void setUp() throws IOException {
+	@Parameters
+	public static List<Object[]> getParameters() throws ParseException {
 
-		leitorArquivo1 = new LeitorArquivo(FILEPATH_PESSOAS1);
-		leitorArquivo2 = new LeitorArquivo(FILEPATH_PESSOAS2);
-		leitorArquivo3 = new LeitorArquivo(FILEPATH_PESSOAS3);
-		leitorArquivo4 = new LeitorArquivo(FILEPATH_PESSOAS4);
+		ArrayList<Object[]> parameters = new ArrayList<Object[]>(4);
+
+		parameters.add(new Object[] {
+				"./resources/pessoas5_10000registros.csv",
+				9980,
+				new Pessoa("Abelardo 3", "Analista de Nada", sdf
+						.parse("01/04/89"), 27900l),
+				new Pessoa("Abelardo 9979", "Analista de Nada", sdf
+						.parse("03/17/97"), 1002802620789l) });
+
+		return parameters;
 	}
 
 	@Test
 	public void testLerRecordsQtdOk() throws IOException {
 
-		assertEquals(FILE_SIZE_PESSOAS1, leitorArquivo1.getRows().size());
-		assertEquals(FILE_SIZE_PESSOAS2, leitorArquivo2.getRows().size());
-		assertEquals(FILE_SIZE_PESSOAS3, leitorArquivo3.getRows().size());
-		assertEquals(FILE_SIZE_PESSOAS4, leitorArquivo4.getRows().size());
+		int count = 0;
+		
+		Iterator<Pessoa> iteratorPessoa = leitorArquivo.iterator();
+		
+		while (iteratorPessoa.hasNext()) {
+			iteratorPessoa.next();
+			++count;
+		}
+		
+		assertEquals(this.numRows, count);
 	}
 
 	@Test
 	public void seLerRecordsEntaoPrimeiroEUltimoRecordsOK() throws IOException {
 
-		assertArrayEquals(FILE_PESSOAS1_PRIMEIRA_LINHA, leitorArquivo1
-				.getRows().get(0));
-		assertArrayEquals(FILE_PESSOAS1_ULTIMA_LINHA, leitorArquivo1.getRows()
-				.get(leitorArquivo1.getRows().size() - 1));
-
-		assertArrayEquals(FILE_PESSOAS2_PRIMEIRA_LINHA, leitorArquivo2
-				.getRows().get(0));
-		assertArrayEquals(FILE_PESSOAS2_ULTIMA_LINHA, leitorArquivo2.getRows()
-				.get(leitorArquivo2.getRows().size() - 1));
-
-		assertArrayEquals(FILE_PESSOAS3_PRIMEIRA_LINHA, leitorArquivo3
-				.getRows().get(0));
-		assertArrayEquals(FILE_PESSOAS3_ULTIMA_LINHA, leitorArquivo3.getRows()
-				.get(leitorArquivo3.getRows().size() - 1));
-
-		assertArrayEquals(FILE_PESSOAS4_PRIMEIRA_LINHA, leitorArquivo4
-				.getRows().get(0));
-		assertArrayEquals(FILE_PESSOAS4_ULTIMA_LINHA, leitorArquivo4.getRows()
-				.get(leitorArquivo4.getRows().size() - 1));
+		Iterator<Pessoa> iteratorPessoa = leitorArquivo.iterator();
+		
+		assertEquals(this.firstPessoa, iteratorPessoa.next());
+		
+		Pessoa pessoa = null;
+		
+		while (iteratorPessoa.hasNext()) {
+			pessoa = iteratorPessoa.next();
+		}
+		
+		assertEquals(this.lastPessoa, pessoa);
 	}
-
 }

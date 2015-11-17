@@ -8,24 +8,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import br.ufc.arquivo.model.Pessoa;
 
 // TODO: CPF será a chave da entidade
+// TODO: eliminar a coluna idade -> será um atributo derivado de dataNascimento, calculado no modelo
 // TODO: implementar método de update, recebendo um iterable<String[]> e atualizando os dados das entidades
 public class Database {
 
 	private int chunkSize = 1000;
-	private static final int NUMBER_COLUMNS_DATABASE = 5;
-	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
 	private static final String QUERY_CREATE_TABLE = "create table pessoa (nome varchar(50), "
-			+ "idade integer, profissão varchar(50), data_nascimento date, cpf bigint)";
-	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?, ?);";
+			+ "profissão varchar(50), data_nascimento date, cpf bigint)";
+	private static final String QUERY_INSERT = "insert into pessoa values (?, ?, ?, ?);";
 	private static final String QUERY_SELECT_ALL = "select * from pessoa";
 	private static final String QUERY_DELETE_ALL = "delete from pessoa";
 	private static final String QUERY_COUNT = "select count(*) from pessoa";
@@ -63,28 +60,21 @@ public class Database {
 			while (rs.next()) {
 
 				String nome = rs.getString(1);
-				Integer idade = rs.getInt(2);
+				String cargo = rs.getString(2);
+				Date dataNascimento = rs.getDate(3);
+				Long cpf = rs.getLong(4);
 				if (rs.wasNull()) {
-					idade = null;
-				}
-				String cargo = rs.getString(3);
-				Date dataNascimento = rs.getDate(4);
-				Long cpf = rs.getLong(5);
-				if(rs.wasNull()) {
 					cpf = null;
 				}
 
-				pessoas.add(new Pessoa(nome, idade, cargo, dataNascimento, cpf));
+				pessoas.add(new Pessoa(nome, cargo, dataNascimento, cpf));
 			}
 		}
 
 		return pessoas;
-
 	}
 
-	//TODO: receber iterable de pessoa
-	public void save(Iterable<String[]> data) throws SQLException,
-			ParseException {
+	public void save(Iterable<Pessoa> data) throws SQLException, ParseException {
 
 		try (PreparedStatement pstmt = this.conn.prepareStatement(QUERY_INSERT)) {
 
@@ -94,35 +84,26 @@ public class Database {
 
 				int batchSize = 0;
 
-				for (String[] dataRow : data) {
+				for (Pessoa pessoa : data) {
 
-					String[] dataRowCompleted = Arrays.copyOf(dataRow,
-							NUMBER_COLUMNS_DATABASE);
-
-					// nome
-					pstmt.setString(1, dataRowCompleted[0]);
-					// idade
-					if (dataRowCompleted[1] == null
-							|| dataRowCompleted[1].isEmpty()) {
-						pstmt.setNull(2, Types.INTEGER);
-					} else {
-						pstmt.setInt(2, Integer.parseInt(dataRowCompleted[1]));
-					}
-					// cargo
-					pstmt.setString(3, dataRowCompleted[2]);
-					// data de nascimento
-					if (dataRowCompleted[3] == null) {
-						pstmt.setNull(4, Types.DATE);
-					} else {
-						pstmt.setDate(4, new Date(sdf
-								.parse(dataRowCompleted[3]).getTime()));
-					}
-
-					if (dataRowCompleted[4] == null) {
-						pstmt.setNull(5, Types.BIGINT);
-					} else {
+					pstmt.setString(1, pessoa.getNome());
+					
+					pstmt.setString(2, pessoa.getCargo());
+					
+					if (pessoa.getDataNascimento() == null) {
 						
-						pstmt.setLong(5, Long.parseLong(dataRowCompleted[4]));
+						pstmt.setNull(3, Types.DATE);
+					} else {
+						pstmt.setDate(3, new Date(pessoa.getDataNascimento()
+								.getTime()));
+					}
+					
+					if (pessoa.getCpf() == null) {
+						
+						pstmt.setNull(4, Types.BIGINT);
+					} else {
+
+						pstmt.setLong(4, pessoa.getCpf());
 					}
 
 					pstmt.addBatch();
@@ -135,9 +116,11 @@ public class Database {
 					}
 				}
 
-				if (batchSize > 0) { // necessário, pois o driver do hsqldb
-										// lança exceção caso seja chamado
-					// executeBatch sem nenhum addBatch antes
+				if (batchSize > 0) {
+					/*
+					 * necessário, pois o driver do hsqldb lança exceção caso
+					 * seja chamado executeBatch sem nenhum addBatch antes
+					 */
 
 					pstmt.executeBatch();
 				}
@@ -150,9 +133,7 @@ public class Database {
 				conn.rollback();
 				throw e;
 			}
-
 		}
-
 	}
 
 	public int size() throws SQLException {
@@ -173,5 +154,4 @@ public class Database {
 
 		this.chunkSize = size;
 	}
-
 }

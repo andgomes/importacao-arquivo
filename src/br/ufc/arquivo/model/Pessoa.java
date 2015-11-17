@@ -1,5 +1,10 @@
 package br.ufc.arquivo.model;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
@@ -7,15 +12,13 @@ import java.util.Objects;
 public class Pessoa {
 
 	private String nome;
-	private Integer idade;
 	private String cargo;
 	private Date dataNascimento;
 	private Long cpf;
 
-	public Pessoa(String nome, Integer idade, String cargo, Date nascimento, Long cpf) {
+	public Pessoa(String nome, String cargo, Date nascimento, Long cpf) {
 
 		this.setNome(nome);
-		this.setIdade(idade);
 		this.setCargo(cargo);
 		this.setDataNascimento(nascimento);
 		this.setCpf(cpf);
@@ -24,7 +27,7 @@ public class Pessoa {
 	public String getCargo() {
 		return cargo;
 	}
-
+	
 	public void setCargo(String cargo) {
 		this.cargo = cargo;
 	}
@@ -36,7 +39,19 @@ public class Pessoa {
 	public void setDataNascimento(Date dataNascimento) {
 		this.dataNascimento = dataNascimento;
 	}
-
+	
+	public int getIdade() {
+		
+		Instant instant = Instant.ofEpochMilli(dataNascimento.getTime());
+		
+		LocalDate localDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate();
+		
+		Period period = Period.between(localDate, LocalDate.now());
+		
+		return period.getYears();
+		
+	}
+	
 	public String getNome() {
 		return nome;
 	}
@@ -44,15 +59,6 @@ public class Pessoa {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
-
-	public Integer getIdade() {
-		return idade;
-	}
-
-	public void setIdade(Integer idade) {
-		this.idade = idade;
-	}
-
 
 	public Long getCpf() {
 		return cpf;
@@ -64,29 +70,39 @@ public class Pessoa {
 
 	@Override
 	public int hashCode() {
-		
-		return Objects.hash(cargo, cpf, 
-				dataNascimento, idade, nome);
-		
+
+		return Objects.hash(cargo, cpf, dataNascimento, nome);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		
-		if (obj instanceof Pessoa) {
-		
-			Pessoa p = (Pessoa) obj;
-			
-			Object[] thisOb = {cargo, cpf, dataNascimento, idade, nome};
-			Object[] comparedOb = {p.cargo, p.cpf, p.dataNascimento, 
-					p.idade, p.nome};
-			
-			return Arrays.equals(thisOb, comparedOb);
-		
-		} 
-		
-		return false;
 
+		Boolean equals = null;
+
+		if (obj instanceof Pessoa) {
+
+			Pessoa other = (Pessoa) obj;
+
+			Object[] thisObj = { cargo, cpf, dataNascimento, nome };
+			Object[] otherObj = { other.cargo, other.cpf, other.dataNascimento,
+					other.nome };
+
+			equals = Arrays.equals(thisObj, otherObj);
+		} else {
+
+			equals = false;
+		}
+
+		return equals;
+	}
+	
+	@Override
+	public String toString() {
+		
+		return String.format("%s, %s, %s, %s",
+				getNome(), getCargo(), getDataNascimento(), 
+				getCpf());
+		
 	}
 
 }
