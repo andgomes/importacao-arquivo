@@ -14,8 +14,7 @@ import java.util.List;
 import br.ufc.arquivo.model.Pessoa;
 
 // TODO: CPF será a chave da entidade
-// TODO: eliminar a coluna idade -> será um atributo derivado de dataNascimento, calculado no modelo
-// TODO: implementar método de update, recebendo um iterable<String[]> e atualizando os dados das entidades
+// TODO: implementar método de update, recebendo um iterable<Pessoa> e atualizando os dados das entidades
 public class Database {
 
 	private int chunkSize = 1000;
@@ -116,18 +115,17 @@ public class Database {
 					}
 				}
 
+				/*
+				 * necessário, pois o driver do hsqldb lança exceção caso
+				 * seja chamado executeBatch sem nenhum addBatch antes
+				 */
 				if (batchSize > 0) {
-					/*
-					 * necessário, pois o driver do hsqldb lança exceção caso
-					 * seja chamado executeBatch sem nenhum addBatch antes
-					 */
 
 					pstmt.executeBatch();
 				}
 
 				conn.commit();
 
-				conn.setAutoCommit(true);
 			} catch (SQLException e) {
 
 				conn.rollback();
